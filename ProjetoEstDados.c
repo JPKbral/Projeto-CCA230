@@ -1,13 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #define LEN 20
 
 typedef struct Registro{
-  string nome;
+  char nome[50];
   int idade;
-  string rg;
+  char rg[10];
   Data entrada;
 }Registro;
 
