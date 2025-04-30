@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h>
+#include <unistd.h>
 
 #define LEN 20
 
@@ -64,7 +66,7 @@ Data *cria_data(int dia, int mes, int ano){
 
 Registro *cria_registro(const char *nome, int idade, long rg, Data *entrada){
   Registro *registro = malloc(sizeof(Registro));
-  registro->nome = nome;
+  registro->nome = strdup(nome);
   registro->idade = idade;
   registro->rg = rg;
   registro->entrada = entrada;
@@ -95,7 +97,7 @@ EFila *cria_efila(Registro *dados){
 Fila *cria_fila(){
   Fila *fila = malloc(sizeof(Fila));
   fila->head = NULL;
-  fila->head = NULL;
+  fila->tail = NULL;
   fila->qtde = 0;
   return fila;
 }
@@ -166,7 +168,7 @@ void mostrar_lista(Lista *lista){
   }
 
   ELista *atual = lista->inicio;
-  printf("--------------------------------\n\n");
+  printf("\n--------------------------------\n\n");
   while(atual != NULL){
     imprimir_registro(atual->dados);
     atual = atual->proximo;
@@ -174,42 +176,64 @@ void mostrar_lista(Lista *lista){
   printf("--------------------------------\n");
 }
 
-void atualizar_dados(Lista *lista, const char *nome){
+void atualizar_dados(Lista *lista){
+  mostrar_lista(lista);
+  printf("De quem voce deseja alterar os dados?");
+  char nome[50];
+  fgets(nome, sizeof(nome), stdin);
+  nome[strcspn(nome, "\n")] = 0;
   ELista *atual = lista->inicio;
-  while(nome != atual->dados->nome && atual != NULL){
+  while(atual != NULL && strcmp(nome, atual->dados->nome) != 0){
     atual = atual->proximo;
   }
   if(atual == NULL){
     printf("Pessoa nao foi encontrada");
+    Sleep(1500);
     return;
   }
-  char c;
-  printf("Qual dado deseja alterar?");
+  printf("\n");
+  char escolha[10];
+  printf("Qual dado deseja alterar?\n");
   imprimir_registro(atual->dados);
-  scanf(" %c", &c);
-  switch (c)
+  fgets(escolha, sizeof(escolha), stdin);
+  switch (escolha[0])
   {
   case 'n':case 'N':
-    printf("Qual o novo nome?");
-    scanf(" %c", &atual->dados->nome);
+    printf("Qual o novo nome? ");
+    char novo_nome[50];
+    scanf(" %[^\n]", novo_nome);
+    atual->dados->nome = strdup(novo_nome);
     break;
 
   case 'i':case 'I':
     printf("Qual a idade?");
-    scanf(" %c", &atual->dados->idade);
+    scanf(" %d", &atual->dados->idade);
     break;
 
   case 'r':case 'R':
     printf("Qual o rg?");
-    scanf(" %c", &atual->dados->rg);
+    long verificarRg;
+    scanf(" %ld", &verificarRg);
+    if(verificarRg/1000000000 != 0 || verificarRg/100000000 == 0 || verificarRg<0){
+      printf("RG invalido\n");
+      Sleep(1500);
+      return;
+    }
+    atual->dados->rg = verificarRg;
     break;
 
   case 'd':case 'D':
-    printf("Qual a data de entrada?");
-    scanf(" %c", &atual->dados->entrada);
+    printf("Qual o dia de entrada?");
+    scanf(" %d", &atual->dados->entrada->dia);
+    printf("Qual o mes de entrada?");
+    scanf(" %d", &atual->dados->entrada->mes);
+    printf("Qual o ano de entrada?");
+    scanf(" %d", &atual->dados->entrada->ano);
     break;
   
   default:
+    printf("Opcao Invalida\n");
+    Sleep(1500);
     break;
   }
 
@@ -218,8 +242,8 @@ void atualizar_dados(Lista *lista, const char *nome){
 int main(){
   Lista *lista = cria_lista();
   cadastrar(lista, "Gabriel Ueno Vertamatti", 22, 928374920, 30, 4, 2025);
-  mostrar_lista(lista);
   cadastrar(lista, "Gatti", 23, 927394825, 23, 02, 2025);
+  atualizar_dados(lista);
   mostrar_lista(lista);
 
 }
