@@ -239,11 +239,50 @@ void atualizar_dados(Lista *lista){
 
 }
 
+void remover_paciente(Lista *lista){
+  if(lista->qtde == 0){
+    printf("A lista esta vazia\n");
+    Sleep(1500);
+  }
+  mostrar_lista(lista);
+  printf("Quem deseja excluir?");
+  char nome[50];
+  fgets(nome, sizeof(nome), stdin);
+  nome[strcspn(nome, "\n")] = 0;
+  ELista *atual = lista->inicio;
+  ELista *anterior = NULL;
+  while(atual != NULL && strcmp(nome, atual->dados->nome) != 0){
+    anterior = atual;
+    atual = atual->proximo;
+  }
+  if(atual == NULL){
+    printf("Pessoa nao foi encontrada\n");
+    Sleep(1500);
+    return;
+  }
+  if(lista->qtde == 1){
+    lista->inicio = NULL;
+  }
+  else if(atual == lista->inicio){
+    lista->inicio = atual->proximo;
+  }
+  else{
+    anterior->proximo = atual->proximo;
+  }
+  free(atual);
+  lista->qtde--;
+}
+
 int main(){
   Lista *lista = cria_lista();
   cadastrar(lista, "Gabriel Ueno Vertamatti", 22, 928374920, 30, 4, 2025);
   cadastrar(lista, "Gatti", 23, 927394825, 23, 02, 2025);
-  atualizar_dados(lista);
+  mostrar_lista(lista);
+  remover_paciente(lista);
+  mostrar_lista(lista);
+  remover_paciente(lista);
+  mostrar_lista(lista);
+  remover_paciente(lista);
   mostrar_lista(lista);
 
 }
