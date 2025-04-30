@@ -11,7 +11,7 @@ typedef struct Data{
 }Data;
 
 typedef struct Registro{
-  char nome[50];
+  const char *nome;
   int idade;
   long rg;
   Data *entrada;
@@ -62,9 +62,9 @@ Data *cria_data(int dia, int mes, int ano){
   return data;
 }
 
-Registro *cria_registro(char nome[50], int idade, long rg, Data *entrada){
+Registro *cria_registro(const char *nome, int idade, long rg, Data *entrada){
   Registro *registro = malloc(sizeof(Registro));
-  strcpy(registro->nome, nome);
+  registro->nome = nome;
   registro->idade = idade;
   registro->rg = rg;
   registro->entrada = entrada;
@@ -125,7 +125,10 @@ ABB *cria_abb(){
   return abb;
 }
 
-void cadastrar(Lista *lista, ELista *elista){
+void cadastrar(Lista *lista, const char *nome, int idade, long rg, int dia, int mes, int ano){
+  Data *entrada = cria_data(dia, mes, ano);
+  Registro *registro = cria_registro(nome, idade, rg, entrada);
+  ELista *elista = cria_elista(registro);
   if(lista->qtde != 0){
     elista->proximo = lista->inicio;
   }
@@ -171,16 +174,52 @@ void mostrar_lista(Lista *lista){
   printf("--------------------------------\n");
 }
 
+void atualizar_dados(Lista *lista, const char *nome){
+  ELista *atual = lista->inicio;
+  while(nome != atual->dados->nome && atual != NULL){
+    atual = atual->proximo;
+  }
+  if(atual == NULL){
+    printf("Pessoa nao foi encontrada");
+    return;
+  }
+  char c;
+  printf("Qual dado deseja alterar?");
+  imprimir_registro(atual->dados);
+  scanf(" %c", &c);
+  switch (c)
+  {
+  case 'n':case 'N':
+    printf("Qual o novo nome?");
+    scanf(" %c", &atual->dados->nome);
+    break;
+
+  case 'i':case 'I':
+    printf("Qual a idade?");
+    scanf(" %c", &atual->dados->idade);
+    break;
+
+  case 'r':case 'R':
+    printf("Qual o rg?");
+    scanf(" %c", &atual->dados->rg);
+    break;
+
+  case 'd':case 'D':
+    printf("Qual a data de entrada?");
+    scanf(" %c", &atual->dados->entrada);
+    break;
+  
+  default:
+    break;
+  }
+
+}
+
 int main(){
-  Data *entrada = cria_data(30, 4, 2025);
-  Registro *registro = cria_registro("Gabriel Ueno Vertamatti", 22, 928374920, entrada);
-  Registro *registro2 = cria_registro("Gatti", 23, 927394825, entrada);
   Lista *lista = cria_lista();
-  ELista *gabriel = cria_elista(registro);
-  ELista *dendo = cria_elista(registro2);
-  cadastrar(lista, gabriel);
+  cadastrar(lista, "Gabriel Ueno Vertamatti", 22, 928374920, 30, 4, 2025);
   mostrar_lista(lista);
-  cadastrar(lista, dendo);
+  cadastrar(lista, "Gatti", 23, 927394825, 23, 02, 2025);
   mostrar_lista(lista);
 
 }
