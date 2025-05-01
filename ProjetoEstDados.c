@@ -204,11 +204,7 @@ void imprimir_data(Data *data){
 
 //Formatação correta para o RG
 void imprimir_rg(long rg){
-  int parte1 = (rg/10000000)%100;
-  int parte2 = (rg/10000)%1000;
-  int parte3 = (rg/10)%1000;
-  int parte4 = rg%10;
-  printf("%d.%d.%d-%d", parte1, parte2, parte3, parte4);
+  printf("%02d.%03d.%03d-%d", (rg/10000000)%100, (rg/10000)%1000, (rg/10)%1000, rg%10);
 }
 
 //Formatação para um registro
