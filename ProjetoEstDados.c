@@ -138,20 +138,6 @@ void limpar_buffer(){
   while ((c = getchar()) != '\n' && c != EOF);
 }
 
-//Libera a memória alocada para a lista
-void liberar_lista(Lista *lista) {
-  ELista *atual = lista->inicio;
-  while (atual) {
-      ELista *temp = atual;
-      free(atual->dados->entrada);
-      free((char *)atual->dados->nome);
-      free(atual->dados);
-      atual = atual->proximo;
-      free(temp);
-  }
-  free(lista);
-}
-
 //Usuário digita o nome do paciente e o código cria um ponteiro ELista para o paciente, se existir
 ELista *procurar_paciente(Lista *lista){
   char nome[NAME];
@@ -369,10 +355,6 @@ void remover_paciente(Lista *lista){
   else{
     anterior->proximo = atual->proximo;
   }
-  //Liberando estruturas alocadas
-  free(atual->dados->entrada);
-  free((char *)atual->dados->nome);
-  free(atual->dados);
   free(atual);
   lista->qtde--;
 }
@@ -429,10 +411,6 @@ void desenfileirar_paciente(Fila *fila){
   else{
     fila->head = fila->head->proximo;
   }
-  //Liberando a memória alocada para o paciente retirado da fila
-  free(aux->dados->entrada);
-  free((char *)aux->dados->nome);
-  free(aux->dados);
   free(aux);
   fila->qtde--;
 }
@@ -475,8 +453,6 @@ int main(){
   desenfileirar_paciente(fila);
   desenfileirar_paciente(fila);
   mostrar_fila(fila);
-
-  liberar_lista(lista);
-  free(fila);
+  
 
 }
