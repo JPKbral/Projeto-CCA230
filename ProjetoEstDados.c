@@ -132,7 +132,39 @@ void limpar_buffer(){
   while ((c = getchar()) != '\n' && c != EOF);
 }
 
-void cadastrar(Lista *lista, const char *nome, int idade, long rg, int dia, int mes, int ano){
+void cadastrar_manual(Lista *lista){
+  int dia, mes, ano, idade;
+  char nome[50];
+  long rg;
+  printf("Qual o nome? ");
+  scanf(" %[^\n]", nome);
+  printf("Qual a idade?");
+  scanf(" %d", &idade);
+  printf("Qual o rg?");
+  scanf(" %ld", &rg);
+  if(rg/1000000000 != 0 || rg/100000000 == 0 || rg<0){
+    printf("RG invalido\n");
+    Sleep(1500);
+    return;
+  }
+  printf("Qual o dia de entrada?");
+  scanf(" %d", &dia);
+  printf("Qual o mes de entrada?");
+  scanf(" %d", &mes);
+  printf("Qual o ano de entrada?");
+  scanf(" %d", &ano);
+  limpar_buffer();
+  Data *entrada = cria_data(dia, mes, ano);
+  Registro *registro = cria_registro(nome, idade, rg, entrada);
+  ELista *elista = cria_elista(registro);
+  if(lista->qtde != 0){
+    elista->proximo = lista->inicio;
+  }
+  lista->inicio = elista;
+  lista->qtde++;
+}
+
+void cadastrar_automatico(Lista *lista, const char *nome, int idade, long rg, int dia, int mes, int ano){
   Data *entrada = cria_data(dia, mes, ano);
   Registro *registro = cria_registro(nome, idade, rg, entrada);
   ELista *elista = cria_elista(registro);
@@ -305,9 +337,15 @@ void consultar_paciente(Lista *lista){
 
 int main(){
   Lista *lista = cria_lista();
-  cadastrar(lista, "Geno Erti", 22, 928374920, 30, 4, 2025);
-  cadastrar(lista, "Buno Gano", 23, 927394825, 23, 02, 2025);
-  cadastrar(lista, "Ben Or", 67, 120923875, 11, 9, 2024);
-  consultar_paciente(lista);
+  cadastrar_automatico(lista, "Geno Erti", 22, 928374920, 30, 4, 2025);
+  cadastrar_automatico(lista, "Buno Gano", 23, 927394825, 23, 02, 2025);
+  cadastrar_automatico(lista, "Ben Or", 67, 120923875, 11, 9, 2024);
+  mostrar_lista(lista);
+  cadastrar_manual(lista);
+  mostrar_lista(lista);
+  cadastrar_manual(lista);
+  mostrar_lista(lista);
+  cadastrar_manual(lista);
+  mostrar_lista(lista);
 
 }
