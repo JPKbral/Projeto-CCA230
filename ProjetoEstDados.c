@@ -127,6 +127,11 @@ ABB *cria_abb(){
   return abb;
 }
 
+void limpar_buffer(){
+  int c;
+  while ((c = getchar()) != '\n' && c != EOF);
+}
+
 void cadastrar(Lista *lista, const char *nome, int idade, long rg, int dia, int mes, int ano){
   Data *entrada = cria_data(dia, mes, ano);
   Registro *registro = cria_registro(nome, idade, rg, entrada);
@@ -193,8 +198,8 @@ void atualizar_dados(Lista *lista){
   }
   printf("\n");
   char escolha[10];
-  printf("Qual dado deseja alterar?\n");
   imprimir_registro(atual->dados);
+  printf("Qual dado deseja alterar?\n");
   fgets(escolha, sizeof(escolha), stdin);
   switch (escolha[0])
   {
@@ -202,18 +207,21 @@ void atualizar_dados(Lista *lista){
     printf("Qual o novo nome? ");
     char novo_nome[50];
     scanf(" %[^\n]", novo_nome);
+    limpar_buffer();
     atual->dados->nome = strdup(novo_nome);
     break;
 
   case 'i':case 'I':
     printf("Qual a idade?");
     scanf(" %d", &atual->dados->idade);
+    limpar_buffer();
     break;
 
   case 'r':case 'R':
     printf("Qual o rg?");
     long verificarRg;
     scanf(" %ld", &verificarRg);
+    limpar_buffer();
     if(verificarRg/1000000000 != 0 || verificarRg/100000000 == 0 || verificarRg<0){
       printf("RG invalido\n");
       Sleep(1500);
@@ -222,13 +230,14 @@ void atualizar_dados(Lista *lista){
     atual->dados->rg = verificarRg;
     break;
 
-  case 'd':case 'D':
+  case 'e':case 'E':
     printf("Qual o dia de entrada?");
     scanf(" %d", &atual->dados->entrada->dia);
     printf("Qual o mes de entrada?");
     scanf(" %d", &atual->dados->entrada->mes);
     printf("Qual o ano de entrada?");
     scanf(" %d", &atual->dados->entrada->ano);
+    limpar_buffer();
     break;
   
   default:
@@ -243,6 +252,7 @@ void remover_paciente(Lista *lista){
   if(lista->qtde == 0){
     printf("A lista esta vazia\n");
     Sleep(1500);
+    return;
   }
   mostrar_lista(lista);
   printf("Quem deseja excluir?");
@@ -273,16 +283,31 @@ void remover_paciente(Lista *lista){
   lista->qtde--;
 }
 
+void consultar_paciente(Lista *lista){
+  mostrar_lista(lista);
+  printf("De quem voce obter os dados?");
+  char nome[50];
+  fgets(nome, sizeof(nome), stdin);
+  nome[strcspn(nome, "\n")] = 0;
+  ELista *atual = lista->inicio;
+  while(atual != NULL && strcmp(nome, atual->dados->nome) != 0){
+    atual = atual->proximo;
+  }
+  if(atual == NULL){
+    printf("Pessoa nao foi encontrada");
+    Sleep(1500);
+    return;
+  }
+  printf("\n--------------------------------\n\n");
+  imprimir_registro(atual->dados);
+  printf("--------------------------------\n");
+}
+
 int main(){
   Lista *lista = cria_lista();
-  cadastrar(lista, "Gabriel Ueno Vertamatti", 22, 928374920, 30, 4, 2025);
-  cadastrar(lista, "Gatti", 23, 927394825, 23, 02, 2025);
-  mostrar_lista(lista);
-  remover_paciente(lista);
-  mostrar_lista(lista);
-  remover_paciente(lista);
-  mostrar_lista(lista);
-  remover_paciente(lista);
-  mostrar_lista(lista);
+  cadastrar(lista, "Geno Erti", 22, 928374920, 30, 4, 2025);
+  cadastrar(lista, "Buno Gano", 23, 927394825, 23, 02, 2025);
+  cadastrar(lista, "Ben Or", 67, 120923875, 11, 9, 2024);
+  consultar_paciente(lista);
 
 }
