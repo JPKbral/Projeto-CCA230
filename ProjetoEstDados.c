@@ -150,6 +150,8 @@ ELista *procurar_paciente(Lista *lista){
   return atual;
 }
 
+//CADASTRAR
+
 //Faz as perguntas necessárias para criar um cadastro completo e o insere na lista
 void cadastrar_manual(Lista *lista){
   int dia, mes, ano, idade;
@@ -370,6 +372,8 @@ void consultar_paciente(Lista *lista){
   printf("--------------------------------\n");
 }
 
+//ATENDIMENTO
+
 //Usuário digita o nome do paciente a ser adicionado na fila para o atendimento
 void enfileirar_paciente(Lista *lista, Fila *fila){
   mostrar_nome_lista(lista);
@@ -421,34 +425,117 @@ void mostrar_fila(Fila *fila){
   int idx = 1;
   printf("\n--------------------------------\n");
   while(atual != NULL){
-    printf("%d -)", idx);
-    printf(" %s\n", atual->dados->nome);
+    printf("%d -) %s\n", idx, atual->dados->nome);
     atual = atual->proximo;
     idx++;
   }
   printf("--------------------------------\n");
 }
 
+//ATENDIMENTO PRIORITÁRIO
+
+int filho_esq(int pai){
+  return 2*pai+1;
+}
+
+int filho_dir(int pai){
+  return 2*pai+2;
+}
+
+int pai(int filho){
+  return (filho - 1)/2;
+}
+
+int ultimo_pai(Heap *heap){
+  if(heap->qtde <= 1){
+    return 0;
+  }
+  return (heap->qtde/2)-1;
+}
+
+void peneirar(Heap *heap, int pai){
+  int aux = pai;
+  if (filho_esq(pai) < heap->qtde && heap->dados[filho_esq(pai)]->idade > heap->dados[aux]->idade){
+      aux = filho_esq(pai);
+  }
+  if (filho_dir(pai) < heap->qtde && heap->dados[filho_dir(pai)]->idade > heap->dados[aux]->idade){
+      aux = filho_dir(pai);
+  }
+  if (aux != pai){
+      Registro *temp = heap->dados[pai];
+      heap->dados[pai] = heap->dados[aux];
+      heap->dados[aux] = temp;
+      peneirar(heap,aux);
+  }
+}
+
+void construir(Heap *heap) {
+  int idx;
+  for(idx = ultimo_pai(heap); idx >= 0; idx--){
+    peneirar(heap, idx);
+  }
+}
+
+void mostrar_fila_prioriaria(Heap *heap) {
+  if(heap->qtde == 0){
+    printf("Ninguem esta na fila prioritaria\n\n");
+    Sleep(1500);
+    return;
+  }
+  int idx;
+  for(idx = 0; idx < heap->qtde; idx++){
+    printf("%d -) %s - Idade: %d\n", idx+1, heap->dados[idx]->nome, heap->dados[idx]->idade);
+  }
+  printf("\n");
+}
+
+void inserir_fila_prioriaria(Lista *lista, Heap *heap) {
+  if(heap->qtde == LEN){
+    return;
+  }
+  mostrar_nome_lista(lista);
+  printf("Quem deseja inserir na fila prioritaria?");
+  ELista *atual = procurar_paciente(lista);
+  if(atual == NULL){
+    printf("Pessoa nao foi encontrada\n");
+    Sleep(1500);
+    return;
+  }
+  Registro *dado = atual->dados;
+  heap->dados[heap->qtde] = dado;
+  heap->qtde++;
+  construir(heap);
+}
+
+void remover_fila_prioriaria(Heap *heap) {
+  if(heap->qtde == 0){
+    return;
+  }
+    heap->dados[0] = heap->dados[heap->qtde-1];
+    heap->qtde--;
+  for(int i = 0; i < heap->qtde; i++){
+    peneirar(heap, 0);
+  }
+}
+
 int main(){
   Lista *lista = cria_lista();
   Fila *fila = cria_fila();
+  Heap *fila_prioritaria = cria_heap();
   cadastrar_automatico(lista, "Geno Erti", 22, 928374920, 30, 4, 2025);
   cadastrar_automatico(lista, "Buno Gano", 23, 927394825, 23, 02, 2025);
   cadastrar_automatico(lista, "Ben Or", 67, 120923875, 11, 9, 2024);
-  cadastrar_manual(lista);
-  mostrar_lista(lista);
-  mostrar_fila(fila);
-  enfileirar_paciente(lista, fila);
-  enfileirar_paciente(lista, fila);
-  enfileirar_paciente(lista, fila);
-  mostrar_fila(fila);
-  desenfileirar_paciente(fila);
-  mostrar_fila(fila);
-  desenfileirar_paciente(fila);
-  mostrar_fila(fila);
-  desenfileirar_paciente(fila);
-  desenfileirar_paciente(fila);
-  mostrar_fila(fila);
+  mostrar_fila_prioriaria(fila_prioritaria);
+  inserir_fila_prioriaria(lista, fila_prioritaria);
+  inserir_fila_prioriaria(lista, fila_prioritaria);
+  inserir_fila_prioriaria(lista, fila_prioritaria);
+  mostrar_fila_prioriaria(fila_prioritaria);
+  remover_fila_prioriaria(fila_prioritaria);
+  mostrar_fila_prioriaria(fila_prioritaria);
+  remover_fila_prioriaria(fila_prioritaria);
+  mostrar_fila_prioriaria(fila_prioritaria);
+  remover_fila_prioriaria(fila_prioritaria);
+  mostrar_fila_prioriaria(fila_prioritaria);
   
 
 }
