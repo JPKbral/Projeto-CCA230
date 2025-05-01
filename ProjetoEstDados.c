@@ -132,6 +132,17 @@ void limpar_buffer(){
   while ((c = getchar()) != '\n' && c != EOF);
 }
 
+ELista *procurar_paciente(Lista *lista){
+  char nome[50];
+  fgets(nome, sizeof(nome), stdin);
+  nome[strcspn(nome, "\n")] = 0;
+  ELista *atual = lista->inicio;
+  while(atual != NULL && strcmp(nome, atual->dados->nome) != 0){
+    atual = atual->proximo;
+  }
+  return atual;
+}
+
 void cadastrar_manual(Lista *lista){
   int dia, mes, ano, idade;
   char nome[50];
@@ -216,13 +227,7 @@ void mostrar_lista(Lista *lista){
 void atualizar_dados(Lista *lista){
   mostrar_lista(lista);
   printf("De quem voce deseja alterar os dados?");
-  char nome[50];
-  fgets(nome, sizeof(nome), stdin);
-  nome[strcspn(nome, "\n")] = 0;
-  ELista *atual = lista->inicio;
-  while(atual != NULL && strcmp(nome, atual->dados->nome) != 0){
-    atual = atual->proximo;
-  }
+  ELista *atual = procurar_paciente(lista);
   if(atual == NULL){
     printf("Pessoa nao foi encontrada");
     Sleep(1500);
@@ -318,13 +323,7 @@ void remover_paciente(Lista *lista){
 void consultar_paciente(Lista *lista){
   mostrar_lista(lista);
   printf("De quem voce obter os dados?");
-  char nome[50];
-  fgets(nome, sizeof(nome), stdin);
-  nome[strcspn(nome, "\n")] = 0;
-  ELista *atual = lista->inicio;
-  while(atual != NULL && strcmp(nome, atual->dados->nome) != 0){
-    atual = atual->proximo;
-  }
+  ELista *atual = procurar_paciente(lista);
   if(atual == NULL){
     printf("Pessoa nao foi encontrada");
     Sleep(1500);
@@ -340,12 +339,9 @@ int main(){
   cadastrar_automatico(lista, "Geno Erti", 22, 928374920, 30, 4, 2025);
   cadastrar_automatico(lista, "Buno Gano", 23, 927394825, 23, 02, 2025);
   cadastrar_automatico(lista, "Ben Or", 67, 120923875, 11, 9, 2024);
-  mostrar_lista(lista);
-  cadastrar_manual(lista);
-  mostrar_lista(lista);
-  cadastrar_manual(lista);
-  mostrar_lista(lista);
-  cadastrar_manual(lista);
+  atualizar_dados(lista);
+  atualizar_dados(lista);
+  atualizar_dados(lista);
   mostrar_lista(lista);
 
 }
