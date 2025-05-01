@@ -334,14 +334,73 @@ void consultar_paciente(Lista *lista){
   printf("--------------------------------\n");
 }
 
+void enfileirar_paciente(Lista *lista, Fila *fila){
+  printf("Quem voce deseja inserir no antendimento?");
+  ELista *aux = procurar_paciente(lista);
+  if(aux == NULL){
+    printf("Pessoa nao foi encontrada");
+    Sleep(1500);
+    return;
+  }
+  EFila *novo = cria_efila(aux->dados);
+  if(fila->qtde == 0){
+    fila->head = novo;
+  }
+  else{
+    fila->tail->proximo = novo;
+  }
+  fila->tail = novo;
+  fila->qtde++;
+}
+
+void desenfileirar_paciente(Fila *fila){
+  if(fila->qtde == 0){
+    printf("A fila esta vazia\n");
+    return;
+  }
+  EFila *aux = fila->head;
+  if(fila->qtde == 1){
+    fila->head = NULL;
+    fila->tail = NULL;
+  }
+  else{
+    fila->head = fila->head->proximo;
+  }
+  free(aux);
+  fila->qtde--;
+}
+
+void mostrar_fila(Fila *fila){
+  if(fila->qtde == 0){
+    printf("Ninguem esta na fila\n\n");
+    return;
+  }
+  EFila *atual = fila->head;
+  printf("\n--------------------------------\n\n");
+  while(atual != NULL){
+    imprimir_registro(atual->dados);
+    atual = atual->proximo;
+  }
+  printf("--------------------------------\n");
+}
+
 int main(){
   Lista *lista = cria_lista();
+  Fila *fila = cria_fila();
   cadastrar_automatico(lista, "Geno Erti", 22, 928374920, 30, 4, 2025);
   cadastrar_automatico(lista, "Buno Gano", 23, 927394825, 23, 02, 2025);
   cadastrar_automatico(lista, "Ben Or", 67, 120923875, 11, 9, 2024);
-  atualizar_dados(lista);
-  atualizar_dados(lista);
-  atualizar_dados(lista);
-  mostrar_lista(lista);
+  mostrar_fila(fila);
+  enfileirar_paciente(lista, fila);
+  enfileirar_paciente(lista, fila);
+  enfileirar_paciente(lista, fila);
+  mostrar_fila(fila);
+  desenfileirar_paciente(fila);
+  mostrar_fila(fila);
+  desenfileirar_paciente(fila);
+  mostrar_fila(fila);
+  desenfileirar_paciente(fila);
+  desenfileirar_paciente(fila);
+  mostrar_fila(fila);
 
 }
