@@ -6,6 +6,8 @@
 
 #define LEN 20
 
+//Definindo estruturas utilizadas
+
 typedef struct Data{
   int dia;
   int mes;
@@ -55,6 +57,8 @@ typedef struct ABB{
   EABB *raiz;
   int qtde;
 }ABB;
+
+//Criando construtores das estruturas
 
 Data *cria_data(int dia, int mes, int ano){
   Data *data = malloc(sizeof(Data));
@@ -127,11 +131,13 @@ ABB *cria_abb(){
   return abb;
 }
 
+//Limpar o buffer do "\n" após utilizar scanf para o fgets funcionar
 void limpar_buffer(){
   int c;
   while ((c = getchar()) != '\n' && c != EOF);
 }
 
+//Usuário digita o nome do paciente e o código cria um ponteiro ELista para o paciente, se existir
 ELista *procurar_paciente(Lista *lista){
   char nome[50];
   fgets(nome, sizeof(nome), stdin);
@@ -143,6 +149,7 @@ ELista *procurar_paciente(Lista *lista){
   return atual;
 }
 
+//Faz as perguntas necessárias para criar um cadastro completo e o insere na lista
 void cadastrar_manual(Lista *lista){
   int dia, mes, ano, idade;
   char nome[50];
@@ -153,6 +160,7 @@ void cadastrar_manual(Lista *lista){
   scanf(" %d", &idade);
   printf("Qual o rg?");
   scanf(" %ld", &rg);
+  //Verifica se o RG possui 9 números
   if(rg/1000000000 != 0 || rg/100000000 == 0 || rg<0){
     printf("RG invalido\n");
     Sleep(1500);
@@ -175,10 +183,12 @@ void cadastrar_manual(Lista *lista){
   lista->qtde++;
 }
 
+//Para utilizar com o arquivo
 void cadastrar_automatico(Lista *lista, const char *nome, int idade, long rg, int dia, int mes, int ano){
   Data *entrada = cria_data(dia, mes, ano);
   Registro *registro = cria_registro(nome, idade, rg, entrada);
   ELista *elista = cria_elista(registro);
+  //Insere o novo cadastro no início da lista
   if(lista->qtde != 0){
     elista->proximo = lista->inicio;
   }
@@ -186,10 +196,12 @@ void cadastrar_automatico(Lista *lista, const char *nome, int idade, long rg, in
   lista->qtde++;
 }
 
+//Formatação correta para a data
 void imprimir_data(Data *data){
   printf("%d/%d/%d", data->dia, data->mes, data->ano);
 }
 
+//Formatação correta para o RG
 void imprimir_rg(long rg){
   int parte1 = (rg/10000000)%100;
   int parte2 = (rg/10000)%1000;
@@ -198,6 +210,7 @@ void imprimir_rg(long rg){
   printf("%d.%d.%d-%d", parte1, parte2, parte3, parte4);
 }
 
+//Formatação para um registro
 void imprimir_registro(Registro *registro){
   printf("Nome: %s\n", registro->nome);
   printf("Idade: %d\n", registro->idade);
@@ -209,6 +222,23 @@ void imprimir_registro(Registro *registro){
   printf("\n\n");
 }
 
+//Mostra apenas os nomes na lista
+void mostrar_nome_lista(Lista *lista){
+  if(lista->qtde == 0){
+    printf("Ninguem esta na lista\n\n");
+    return;
+  }
+
+  ELista *atual = lista->inicio;
+  printf("\n--------------------------------\n");
+  while(atual != NULL){
+    printf(" %s\n", atual->dados->nome);
+    atual = atual->proximo;
+  }
+  printf("--------------------------------\n");
+}
+
+//Mostra a lista completa
 void mostrar_lista(Lista *lista){
   if(lista->qtde == 0){
     printf("Ninguem esta na lista\n\n");
@@ -224,8 +254,9 @@ void mostrar_lista(Lista *lista){
   printf("--------------------------------\n");
 }
 
+//Verificar quem deve ter os dados atualizados e qual dado
 void atualizar_dados(Lista *lista){
-  mostrar_lista(lista);
+  mostrar_nome_lista(lista);
   printf("De quem voce deseja alterar os dados?");
   ELista *atual = procurar_paciente(lista);
   if(atual == NULL){
@@ -234,10 +265,12 @@ void atualizar_dados(Lista *lista){
     return;
   }
   printf("\n");
+  //10 de char para evitar overflow
   char escolha[10];
   imprimir_registro(atual->dados);
   printf("Qual dado deseja alterar?\n");
   fgets(escolha, sizeof(escolha), stdin);
+  //Casos para cada dado de um registro que pode ser alterado
   switch (escolha[0])
   {
   case 'n':case 'N':
@@ -285,14 +318,16 @@ void atualizar_dados(Lista *lista){
 
 }
 
+//Exclui o paciente que o usuário digitar o nome
 void remover_paciente(Lista *lista){
   if(lista->qtde == 0){
     printf("A lista esta vazia\n");
     Sleep(1500);
     return;
   }
-  mostrar_lista(lista);
+  mostrar_nome_lista(lista);
   printf("Quem deseja excluir?");
+  //Não utiliza da função de procura por utilizar do ponteiro 'anterior'
   char nome[50];
   fgets(nome, sizeof(nome), stdin);
   nome[strcspn(nome, "\n")] = 0;
@@ -307,12 +342,15 @@ void remover_paciente(Lista *lista){
     Sleep(1500);
     return;
   }
+  //A lista fica vazia se possuir apenas o cadastro a ser removimo
   if(lista->qtde == 1){
     lista->inicio = NULL;
   }
+  //Se o primeiro da lista aponta para o atual a ser removido esse ponteiro passa para o proximo
   else if(atual == lista->inicio){
     lista->inicio = atual->proximo;
   }
+  //No caso de estar no meio da lista
   else{
     anterior->proximo = atual->proximo;
   }
@@ -320,8 +358,9 @@ void remover_paciente(Lista *lista){
   lista->qtde--;
 }
 
+//O usuário digita o nome do paciente para ter o registro mais completo
 void consultar_paciente(Lista *lista){
-  mostrar_lista(lista);
+  mostrar_nome_lista(lista);
   printf("De quem voce obter os dados?");
   ELista *atual = procurar_paciente(lista);
   if(atual == NULL){
@@ -334,7 +373,9 @@ void consultar_paciente(Lista *lista){
   printf("--------------------------------\n");
 }
 
+//Usuário digita o nome do paciente a ser adicionado na fila para o atendimento
 void enfileirar_paciente(Lista *lista, Fila *fila){
+  mostrar_nome_lista(lista);
   printf("Quem voce deseja inserir no antendimento?");
   ELista *aux = procurar_paciente(lista);
   if(aux == NULL){
@@ -343,9 +384,11 @@ void enfileirar_paciente(Lista *lista, Fila *fila){
     return;
   }
   EFila *novo = cria_efila(aux->dados);
+  //Se for o único item na lista
   if(fila->qtde == 0){
     fila->head = novo;
   }
+  //Caso já existam outros pacientes na fila
   else{
     fila->tail->proximo = novo;
   }
@@ -353,6 +396,7 @@ void enfileirar_paciente(Lista *lista, Fila *fila){
   fila->qtde++;
 }
 
+//Retira o primeiro paciente que foi adicionado na fila
 void desenfileirar_paciente(Fila *fila){
   if(fila->qtde == 0){
     printf("A fila esta vazia\n");
@@ -370,16 +414,20 @@ void desenfileirar_paciente(Fila *fila){
   fila->qtde--;
 }
 
+//Mostra toda a fila na sequência de atendimento
 void mostrar_fila(Fila *fila){
   if(fila->qtde == 0){
     printf("Ninguem esta na fila\n\n");
     return;
   }
   EFila *atual = fila->head;
-  printf("\n--------------------------------\n\n");
+  int idx = 1;
+  printf("\n--------------------------------\n");
   while(atual != NULL){
-    imprimir_registro(atual->dados);
+    printf("%d -)", idx);
+    printf(" %s\n", atual->dados->nome);
     atual = atual->proximo;
+    idx++;
   }
   printf("--------------------------------\n");
 }
@@ -390,6 +438,8 @@ int main(){
   cadastrar_automatico(lista, "Geno Erti", 22, 928374920, 30, 4, 2025);
   cadastrar_automatico(lista, "Buno Gano", 23, 927394825, 23, 02, 2025);
   cadastrar_automatico(lista, "Ben Or", 67, 120923875, 11, 9, 2024);
+  cadastrar_manual(lista);
+  mostrar_lista(lista);
   mostrar_fila(fila);
   enfileirar_paciente(lista, fila);
   enfileirar_paciente(lista, fila);
@@ -402,5 +452,6 @@ int main(){
   desenfileirar_paciente(fila);
   desenfileirar_paciente(fila);
   mostrar_fila(fila);
+  
 
 }
