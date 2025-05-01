@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #define LEN 20
+#define NAME 50
 
 //Definindo estruturas utilizadas
 
@@ -137,9 +138,23 @@ void limpar_buffer(){
   while ((c = getchar()) != '\n' && c != EOF);
 }
 
+//Libera a memória alocada para a lista
+void liberar_lista(Lista *lista) {
+  ELista *atual = lista->inicio;
+  while (atual) {
+      ELista *temp = atual;
+      free(atual->dados->entrada);
+      free((char *)atual->dados->nome);
+      free(atual->dados);
+      atual = atual->proximo;
+      free(temp);
+  }
+  free(lista);
+}
+
 //Usuário digita o nome do paciente e o código cria um ponteiro ELista para o paciente, se existir
 ELista *procurar_paciente(Lista *lista){
-  char nome[50];
+  char nome[NAME];
   fgets(nome, sizeof(nome), stdin);
   nome[strcspn(nome, "\n")] = 0;
   ELista *atual = lista->inicio;
@@ -152,7 +167,7 @@ ELista *procurar_paciente(Lista *lista){
 //Faz as perguntas necessárias para criar um cadastro completo e o insere na lista
 void cadastrar_manual(Lista *lista){
   int dia, mes, ano, idade;
-  char nome[50];
+  char nome[NAME];
   long rg;
   printf("Qual o nome? ");
   scanf(" %[^\n]", nome);
@@ -275,7 +290,7 @@ void atualizar_dados(Lista *lista){
   {
   case 'n':case 'N':
     printf("Qual o novo nome? ");
-    char novo_nome[50];
+    char novo_nome[NAME];
     scanf(" %[^\n]", novo_nome);
     limpar_buffer();
     atual->dados->nome = strdup(novo_nome);
@@ -328,7 +343,7 @@ void remover_paciente(Lista *lista){
   mostrar_nome_lista(lista);
   printf("Quem deseja excluir?");
   //Não utiliza da função de procura por utilizar do ponteiro 'anterior'
-  char nome[50];
+  char nome[NAME];
   fgets(nome, sizeof(nome), stdin);
   nome[strcspn(nome, "\n")] = 0;
   ELista *atual = lista->inicio;
@@ -354,6 +369,10 @@ void remover_paciente(Lista *lista){
   else{
     anterior->proximo = atual->proximo;
   }
+  //Liberando estruturas alocadas
+  free(atual->dados->entrada);
+  free((char *)atual->dados->nome);
+  free(atual->dados);
   free(atual);
   lista->qtde--;
 }
@@ -410,6 +429,10 @@ void desenfileirar_paciente(Fila *fila){
   else{
     fila->head = fila->head->proximo;
   }
+  //Liberando a memória alocada para o paciente retirado da fila
+  free(aux->dados->entrada);
+  free((char *)aux->dados->nome);
+  free(aux->dados);
   free(aux);
   fila->qtde--;
 }
@@ -452,6 +475,8 @@ int main(){
   desenfileirar_paciente(fila);
   desenfileirar_paciente(fila);
   mostrar_fila(fila);
-  
+
+  liberar_lista(lista);
+  free(fila);
 
 }
