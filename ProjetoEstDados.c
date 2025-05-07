@@ -218,13 +218,25 @@ void imprimir_registro(Registro *registro){
   printf("\n");
   printf("Entrada: ");
   imprimir_data(registro->entrada);
-  printf("\n\n");
+  printf("\n");
+}
+
+//Formatação para um registro com numeração para escolha
+void imprimir_registro_escolha(Registro *registro){
+  printf("1-)Nome: %s\n", registro->nome);
+  printf("2-)Idade: %d\n", registro->idade);
+  printf("3-)RG: ");
+  imprimir_rg(registro->rg);
+  printf("\n");
+  printf("4-)Entrada: ");
+  imprimir_data(registro->entrada);
+  printf("\n");
 }
 
 //Mostra apenas os nomes na lista
 void mostrar_nome_lista(Lista *lista){
   if(lista->qtde == 0){
-    printf("Ninguem esta na lista\n\n");
+    printf("Ninguem esta na lista\n");
     return;
   }
 
@@ -240,15 +252,16 @@ void mostrar_nome_lista(Lista *lista){
 //Mostra a lista completa
 void mostrar_lista(Lista *lista){
   if(lista->qtde == 0){
-    printf("Ninguem esta na lista\n\n");
+    printf("Ninguem esta na lista\n");
     return;
   }
 
   ELista *atual = lista->inicio;
-  printf("\n--------------------------------\n\n");
+  printf("\n--------------------------------\n");
   while(atual != NULL){
     imprimir_registro(atual->dados);
     atual = atual->proximo;
+    printf("\n");
   }
   printf("--------------------------------\n");
 }
@@ -264,15 +277,16 @@ void atualizar_dados(Lista *lista){
     return;
   }
   printf("\n");
-  //10 de char para evitar overflow
-  char escolha[10];
-  imprimir_registro(atual->dados);
+  
+  int escolha;
+  imprimir_registro_escolha(atual->dados);
   printf("Qual dado deseja alterar?\n");
-  fgets(escolha, sizeof(escolha), stdin);
+  scanf("%d", &escolha);
+  limpar_buffer();
   //Casos para cada dado de um registro que pode ser alterado
-  switch (escolha[0])
+  switch (escolha)
   {
-  case 'n':case 'N':
+  case 1:
     printf("Qual o novo nome? ");
     char novo_nome[NAME];
     scanf(" %[^\n]", novo_nome);
@@ -280,13 +294,13 @@ void atualizar_dados(Lista *lista){
     atual->dados->nome = strdup(novo_nome);
     break;
 
-  case 'i':case 'I':
+  case 2:
     printf("Qual a idade?");
     scanf(" %d", &atual->dados->idade);
     limpar_buffer();
     break;
 
-  case 'r':case 'R':
+  case 3:
     printf("Qual o rg?");
     long verificarRg;
     scanf(" %ld", &verificarRg);
@@ -299,7 +313,7 @@ void atualizar_dados(Lista *lista){
     atual->dados->rg = verificarRg;
     break;
 
-  case 'e':case 'E':
+  case 4:
     printf("Qual o dia de entrada?");
     scanf(" %d", &atual->dados->entrada->dia);
     printf("Qual o mes de entrada?");
@@ -367,7 +381,7 @@ void consultar_paciente(Lista *lista){
     Sleep(1500);
     return;
   }
-  printf("\n--------------------------------\n\n");
+  printf("\n--------------------------------\n");
   imprimir_registro(atual->dados);
   printf("--------------------------------\n");
 }
@@ -418,7 +432,7 @@ void desenfileirar_paciente(Fila *fila){
 //Mostra toda a fila na sequência de atendimento
 void mostrar_fila(Fila *fila){
   if(fila->qtde == 0){
-    printf("Ninguem esta na fila\n\n");
+    printf("Ninguem esta na fila\n");
     return;
   }
   EFila *atual = fila->head;
@@ -478,7 +492,7 @@ void construir(Heap *heap) {
 
 void mostrar_fila_prioriaria(Heap *heap) {
   if(heap->qtde == 0){
-    printf("Ninguem esta na fila prioritaria\n\n");
+    printf("Ninguem esta na fila prioritaria\n");
     Sleep(1500);
     return;
   }
@@ -508,12 +522,13 @@ void inserir_fila_prioriaria(Lista *lista, Heap *heap) {
 }
 
 void remover_fila_prioriaria(Heap *heap) {
+  int i = 0;
   if(heap->qtde == 0){
     return;
   }
     heap->dados[0] = heap->dados[heap->qtde-1];
     heap->qtde--;
-  for(int i = 0; i < heap->qtde; i++){
+  for(i = 0; i < heap->qtde; i++){
     peneirar(heap, 0);
   }
 }
@@ -522,20 +537,118 @@ int main(){
   Lista *lista = cria_lista();
   Fila *fila = cria_fila();
   Heap *fila_prioritaria = cria_heap();
+  int menuEscolha = 0, segundaEscolha = 0, sair = 0;
   cadastrar_automatico(lista, "Geno Erti", 22, 928374920, 30, 4, 2025);
   cadastrar_automatico(lista, "Buno Gano", 23, 927394825, 23, 02, 2025);
   cadastrar_automatico(lista, "Ben Or", 67, 120923875, 11, 9, 2024);
-  mostrar_fila_prioriaria(fila_prioritaria);
-  inserir_fila_prioriaria(lista, fila_prioritaria);
-  inserir_fila_prioriaria(lista, fila_prioritaria);
-  inserir_fila_prioriaria(lista, fila_prioritaria);
-  mostrar_fila_prioriaria(fila_prioritaria);
-  remover_fila_prioriaria(fila_prioritaria);
-  mostrar_fila_prioriaria(fila_prioritaria);
-  remover_fila_prioriaria(fila_prioritaria);
-  mostrar_fila_prioriaria(fila_prioritaria);
-  remover_fila_prioriaria(fila_prioritaria);
-  mostrar_fila_prioriaria(fila_prioritaria);
-  
+  printf("%d", sair);
+  while(sair == 0){
+    printf("Menu: \n 1-)Cadastrar \n 2-)Atendimento \n 3-)Atendimento Prioritario \n 4-)Pesquisa \n 5-)Desfazer \n 6-)Carregar/Salvar \n 7-)Sobre \n 8-)Sair \n ");
+    scanf(" %d", &menuEscolha);
+    limpar_buffer();
+    switch (menuEscolha)
+    {
+    case 1:
+      //Cadastrar
+      printf("Cadastrar: \n 1-)Cadastrar novo paciente \n 2-)Consultar paciente cadastrado \n 3-)Mostrar lista completa \n 4-)Atualizar dados de paciente \n 5-)Remover paciente \n");
+      scanf(" %d", &segundaEscolha);
+      limpar_buffer();
+      switch (segundaEscolha)
+      {
+      case 1:
+        //Cadastrar novo paciente
+        cadastrar_manual(lista);
+        break;
+        
+      case 2:
+        //Consultar paciente cadastrado
+        consultar_paciente(lista);
+        Sleep(1500);
+        break;
+        
+      case 3:
+        //Mostrar lista completa
+        mostrar_lista(lista);
+        Sleep(1500);
+        break;
+        
+      case 4:
+        //Atualizar dados de paciente
+        atualizar_dados(lista);
+        break;
 
+      case 5:
+        //Remover paciente
+        remover_paciente(lista);
+        break;
+      
+      default:
+      printf("Opcao Invalida\n");
+      Sleep(1500);
+        break;
+      }
+      break;
+    
+    case 2:
+      //Atendimento
+      printf("Cadastrar: \n 1-)Enfileirar paciente \n 2-)Desenfileirar paciente \n 3-)Mostrar fila \n");
+      scanf(" %d", &segundaEscolha);
+      limpar_buffer();
+      switch (segundaEscolha)
+      {
+      case 1:
+        //Enfileirar paciente
+        enfileirar_paciente(lista, fila);
+        break;
+        
+      case 2:
+        //Desenfileirar paciente
+        desenfileirar_paciente(fila);
+        Sleep(1500);
+        break;
+        
+      case 3:
+        //Mostrar fila
+        mostrar_fila(fila);
+        Sleep(1500);
+        break;
+
+      default:
+      printf("Opcao Invalida\n");
+      Sleep(1500);
+        break;
+      }
+      break;
+    
+    case 3:
+      //Atendimento Prioritario
+      break;
+    
+    case 4:
+      //Pesquisa
+      break;
+    
+    case 5:
+      //Desfazer
+      break;
+    
+    case 6:
+      //Carregar/Salvar
+      break;
+    
+    case 7:
+      //Sobre
+      break;
+    
+    case 8:
+      //Sair
+      sair = 1;
+      break;
+    
+    default:
+      printf("Opcao Invalida\n");
+      Sleep(1500);
+      break;
+    }
+  }
 }
