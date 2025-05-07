@@ -425,6 +425,7 @@ void desenfileirar_paciente(Fila *fila){
   else{
     fila->head = fila->head->proximo;
   }
+  printf("%s foi removido da fila de atendimento\n", aux->dados->nome);
   free(aux);
   fila->qtde--;
 }
@@ -524,8 +525,10 @@ void inserir_fila_prioriaria(Lista *lista, Heap *heap) {
 void remover_fila_prioriaria(Heap *heap) {
   int i = 0;
   if(heap->qtde == 0){
+    printf("Ninguem esta na fila prioritaria\n");
     return;
   }
+    printf("%s foi removido da lista prioritaria\n", heap->dados[0]->nome);
     heap->dados[0] = heap->dados[heap->qtde-1];
     heap->qtde--;
   for(i = 0; i < heap->qtde; i++){
@@ -541,7 +544,6 @@ int main(){
   cadastrar_automatico(lista, "Geno Erti", 22, 928374920, 30, 4, 2025);
   cadastrar_automatico(lista, "Buno Gano", 23, 927394825, 23, 02, 2025);
   cadastrar_automatico(lista, "Ben Or", 67, 120923875, 11, 9, 2024);
-  printf("%d", sair);
   while(sair == 0){
     printf("Menu: \n 1-)Cadastrar \n 2-)Atendimento \n 3-)Atendimento Prioritario \n 4-)Pesquisa \n 5-)Desfazer \n 6-)Carregar/Salvar \n 7-)Sobre \n 8-)Sair \n ");
     scanf(" %d", &menuEscolha);
@@ -591,7 +593,7 @@ int main(){
     
     case 2:
       //Atendimento
-      printf("Cadastrar: \n 1-)Enfileirar paciente \n 2-)Desenfileirar paciente \n 3-)Mostrar fila \n");
+      printf("Atendimento: \n 1-)Enfileirar paciente \n 2-)Desenfileirar paciente \n 3-)Mostrar fila \n");
       scanf(" %d", &segundaEscolha);
       limpar_buffer();
       switch (segundaEscolha)
@@ -622,6 +624,35 @@ int main(){
     
     case 3:
       //Atendimento Prioritario
+      printf("Atendimento Prioritario: \n 1-)Enfileirar paciente \n 2-)Desenfileirar paciente \n 3-)Mostrar fila \n");
+      scanf(" %d", &segundaEscolha);
+      limpar_buffer();
+      switch (segundaEscolha)
+      {
+      case 1:
+        //Enfileirar paciente
+        inserir_fila_prioriaria(lista, fila_prioritaria);
+        Sleep(1500);
+        break;
+        
+      case 2:
+        //Desenfileirar paciente
+        remover_fila_prioriaria(fila_prioritaria);
+        Sleep(1500);
+        break;
+        
+      case 3:
+        //Mostrar fila
+        mostrar_fila_prioriaria(fila_prioritaria);
+        Sleep(1500);
+        break;
+
+      default:
+      printf("Opcao Invalida\n");
+      Sleep(1500);
+        break;
+      }
+
       break;
     
     case 4:
