@@ -59,6 +59,11 @@ typedef struct ABB{
   int qtde;
 }ABB;
 
+typedef struct Pilha{
+  EFila *topo;
+  int qtde;
+}Pilha;
+
 //Criando construtores das estruturas
 
 Data *cria_data(int dia, int mes, int ano){
@@ -132,17 +137,17 @@ ABB *cria_abb(){
   return abb;
 }
 
-//Limpar o buffer do "\n" após utilizar scanf para o fgets funcionar
-void limpar_buffer(){
-  int c;
-  while ((c = getchar()) != '\n' && c != EOF);
+Pilha *cria_pilha(){
+  Pilha *pilha = malloc(sizeof(Pilha));
+  pilha->topo = NULL;
+  pilha->qtde = 0;
+  return pilha;
 }
 
 //Usuário digita o nome do paciente e o código cria um ponteiro ELista para o paciente, se existir
 ELista *procurar_paciente(Lista *lista){
   int rg;
   scanf(" %d", &rg);
-  limpar_buffer();
   ELista *atual = lista->inicio;
   while(atual != NULL && rg != atual->dados->rg){
     atual = atual->proximo;
@@ -157,26 +162,24 @@ void cadastrar_manual(Lista *lista){
   int dia, mes, ano, idade;
   char nome[NAME];
   long rg;
-  printf("Qual o nome? ");
+  printf("Qual o nome?\n");
   scanf(" %[^\n]", nome);
-  printf("Qual a idade?");
+  printf("Qual a idade?\n");
   scanf(" %d", &idade);
-  printf("Qual o rg?");
+  printf("Qual o rg?\n");
   scanf(" %ld", &rg);
   //Verifica se o RG possui de 7 a 10 números
   if(rg<1000000 || rg>99999999999){
-    printf("%d", rg);
     printf("RG invalido\n");
     Sleep(1500);
     return;
   }
-  printf("Qual o dia de entrada?");
+  printf("Qual o dia de entrada?\n");
   scanf(" %d", &dia);
-  printf("Qual o mes de entrada?");
+  printf("Qual o mes de entrada?\n");
   scanf(" %d", &mes);
-  printf("Qual o ano de entrada?");
+  printf("Qual o ano de entrada?\n");
   scanf(" %d", &ano);
-  limpar_buffer();
   Data *entrada = cria_data(dia, mes, ano);
   Registro *registro = cria_registro(nome, idade, rg, entrada);
   ELista *elista = cria_elista(registro);
@@ -264,11 +267,10 @@ void mostrar_lista(Lista *lista){
 
 //Verificar quem deve ter os dados atualizados e qual dado
 void atualizar_dados(Lista *lista){
-  printf("Qual o RG da pessoa que voce deseja alterar os dados?");
+  printf("Qual o RG da pessoa que voce deseja alterar os dados?\n");
   ELista *atual = procurar_paciente(lista);
   if(atual == NULL){
-    printf("Pessoa nao foi encontrada");
-    Sleep(1500);
+    printf("Pessoa nao foi encontrada\n");
     return;
   }
   printf("\n");
@@ -277,29 +279,25 @@ void atualizar_dados(Lista *lista){
   imprimir_registro_escolha(atual->dados);
   printf("Qual dado deseja alterar?\n");
   scanf("%d", &escolha);
-  limpar_buffer();
   //Casos para cada dado de um registro que pode ser alterado
   switch (escolha)
   {
   case 1:
-    printf("Qual o novo nome? ");
+    printf("Qual o novo nome?\n");
     char novo_nome[NAME];
     scanf(" %[^\n]", novo_nome);
-    limpar_buffer();
     atual->dados->nome = strdup(novo_nome);
     break;
 
   case 2:
-    printf("Qual a idade?");
+    printf("Qual a idade?\n");
     scanf(" %d", &atual->dados->idade);
-    limpar_buffer();
     break;
 
   case 3:
-    printf("Qual o rg?");
+    printf("Qual o rg?\n");
     long verificarRg;
     scanf(" %ld", &verificarRg);
-    limpar_buffer();
     //Verifica se o RG possui de 7 a 10 números
     if(verificarRg<1000000 || verificarRg>9999999999){
       printf("RG invalido\n");
@@ -310,13 +308,12 @@ void atualizar_dados(Lista *lista){
     break;
 
   case 4:
-    printf("Qual o dia de entrada?");
+    printf("Qual o dia de entrada?\n");
     scanf(" %d", &atual->dados->entrada->dia);
-    printf("Qual o mes de entrada?");
+    printf("Qual o mes de entrada?\n");
     scanf(" %d", &atual->dados->entrada->mes);
-    printf("Qual o ano de entrada?");
+    printf("Qual o ano de entrada?\n");
     scanf(" %d", &atual->dados->entrada->ano);
-    limpar_buffer();
     break;
   
   default:
@@ -334,11 +331,10 @@ void remover_paciente(Lista *lista){
     Sleep(1500);
     return;
   }
-  printf("Qual o RG de quem deseja excluir?");
+  printf("Qual o RG de quem deseja excluir?\n");
   //Não utiliza da função de procura por utilizar do ponteiro 'anterior'
   int rg;
   scanf(" %d", &rg);
-  limpar_buffer();
   ELista *atual = lista->inicio;
   ELista *anterior = NULL;
   while(atual != NULL && rg != atual->dados->rg){
@@ -347,7 +343,6 @@ void remover_paciente(Lista *lista){
   }
   if(atual == NULL){
     printf("Pessoa nao foi encontrada\n");
-    Sleep(1500);
     return;
   }
   //A lista fica vazia se possuir apenas o cadastro a ser removimo
@@ -369,11 +364,10 @@ void remover_paciente(Lista *lista){
 
 //O usuário digita o nome do paciente para ter o registro mais completo
 void consultar_paciente(Lista *lista){
-  printf("Qual o RG de quem voce deseja obter os dados?");
+  printf("Qual o RG de quem voce deseja obter os dados?\n");
   ELista *atual = procurar_paciente(lista);
   if(atual == NULL){
-    printf("Pessoa nao foi encontrada");
-    Sleep(1500);
+    printf("Pessoa nao foi encontrada\n");
     return;
   }
   printf("\n--------------------------------\n");
@@ -389,7 +383,6 @@ void enfileirar_paciente(Lista *lista, Fila *fila){
   ELista *aux = procurar_paciente(lista);
   if(aux == NULL){
     printf("Pessoa nao foi encontrada\n");
-    Sleep(1500);
     return;
   }
   EFila *novo = cria_efila(aux->dados);
@@ -503,11 +496,10 @@ void inserir_fila_prioriaria(Lista *lista, Heap *heap) {
   if(heap->qtde == LEN){
     return;
   }
-  printf("Qual o RG de quem deseja inserir na fila prioritaria?");
+  printf("Qual o RG de quem deseja inserir na fila prioritaria?\n");
   ELista *atual = procurar_paciente(lista);
   if(atual == NULL){
     printf("Pessoa nao foi encontrada\n");
-    Sleep(1500);
     return;
   }
   Registro *dado = atual->dados;
@@ -531,6 +523,26 @@ void remover_fila_prioriaria(Heap *heap) {
   }
 }
 
+//DESFAZER
+
+void salvar_acao(Fila *fila, EFila *acao, Pilha *pilha, char tipo){
+}
+
+void desfazer_acao(Pilha *pilha) {
+  if (pilha->qtde > 0) {
+    EFila *topo = pilha->topo;
+    pilha->topo = pilha->topo->proximo;
+    pilha->qtde--;
+    free(topo);
+    return;
+  } 
+  else{
+    printf("Nao ha acoes para desfazer\n");
+    Sleep(1500);
+    return;
+  }
+}
+
 int main(){
   Lista *lista = cria_lista();
   Fila *fila = cria_fila();
@@ -542,14 +554,12 @@ int main(){
   while(sair == 0){
     printf("Menu: \n 1-)Cadastrar \n 2-)Atendimento \n 3-)Atendimento Prioritario \n 4-)Pesquisa \n 5-)Desfazer \n 6-)Carregar/Salvar \n 7-)Sobre \n 8-)Sair \n ");
     scanf(" %d", &menuEscolha);
-    limpar_buffer();
     switch (menuEscolha)
     {
     case 1:
       //Cadastrar
       printf("Cadastrar: \n 1-)Cadastrar novo paciente \n 2-)Consultar paciente cadastrado \n 3-)Mostrar lista completa \n 4-)Atualizar dados de paciente \n 5-)Remover paciente \n");
       scanf(" %d", &segundaEscolha);
-      limpar_buffer();
       switch (segundaEscolha)
       {
       case 1:
@@ -572,6 +582,7 @@ int main(){
       case 4:
         //Atualizar dados de paciente
         atualizar_dados(lista);
+        Sleep(1500);
         break;
 
       case 5:
@@ -591,7 +602,6 @@ int main(){
       //Atendimento
       printf("Atendimento: \n 1-)Enfileirar paciente \n 2-)Desenfileirar paciente \n 3-)Mostrar fila \n");
       scanf(" %d", &segundaEscolha);
-      limpar_buffer();
       switch (segundaEscolha)
       {
       case 1:
@@ -623,7 +633,6 @@ int main(){
       //Atendimento Prioritario
       printf("Atendimento Prioritario: \n 1-)Enfileirar paciente \n 2-)Desenfileirar paciente \n 3-)Mostrar fila \n");
       scanf(" %d", &segundaEscolha);
-      limpar_buffer();
       switch (segundaEscolha)
       {
       case 1:
