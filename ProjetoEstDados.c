@@ -59,8 +59,14 @@ typedef struct ABB{
   int qtde;
 }ABB;
 
+typedef struct EPilha{
+  struct EPilha *proximo;
+  EFila *ficha;
+  char acao;
+}EPilha;
+
 typedef struct Pilha{
-  EFila *topo;
+  EPilha *topo;
   int qtde;
 }Pilha;
 
@@ -135,6 +141,14 @@ ABB *cria_abb(){
   abb->raiz = NULL;
   abb->qtde = 0;
   return abb;
+}
+
+EPilha *cria_epilha(){
+  EPilha *epilha = malloc(sizeof(EPilha));
+  epilha->proximo = NULL;
+  epilha->ficha = NULL;
+  epilha->acao = '0';
+  return epilha;
 }
 
 Pilha *cria_pilha(){
@@ -301,7 +315,6 @@ void atualizar_dados(Lista *lista){
     //Verifica se o RG possui de 7 a 10 números
     if(verificarRg<1000000 || verificarRg>9999999999){
       printf("RG invalido\n");
-      Sleep(1500);
       return;
     }
     atual->dados->rg = verificarRg;
@@ -318,7 +331,6 @@ void atualizar_dados(Lista *lista){
   
   default:
     printf("Opcao Invalida\n");
-    Sleep(1500);
     break;
   }
 
@@ -328,7 +340,6 @@ void atualizar_dados(Lista *lista){
 void remover_paciente(Lista *lista){
   if(lista->qtde == 0){
     printf("A lista esta vazia\n");
-    Sleep(1500);
     return;
   }
   printf("Qual o RG de quem deseja excluir?\n");
@@ -375,10 +386,113 @@ void consultar_paciente(Lista *lista){
   printf("--------------------------------\n");
 }
 
+//DESFAZER
+
+void salvar_adicionar_fila(EFila *ficha, Pilha *pilha){
+  EPilha *novo = cria_epilha();
+  novo->ficha = ficha;
+  //Caractere define que foi uma ação de 'a' (adicionar)
+  novo->acao = 'a';
+  if(pilha->qtde != 0){
+    novo->proximo = pilha->topo;
+  }
+  pilha->topo = novo;
+  pilha->qtde++;
+}
+
+void salvar_remover_fila(EFila *ficha, Pilha *pilha){
+  EPilha *novo = cria_epilha();
+  novo->ficha = ficha;
+  //Caractere define que foi uma ação de 'r' (remover)
+  novo->acao = 'r';
+  if(pilha->qtde != 0){
+    novo->proximo = pilha->topo;
+  }
+  pilha->topo = novo;
+  pilha->qtde++;
+}
+
+void operacoes_na_fila(Pilha *pilha){
+  if(pilha->qtde == 0){
+    printf("Nenhuma acao para desfazer na fila\n");
+    return;
+  }
+  EPilha *atual = pilha->topo;
+  int idx = 0;
+  for (idx = 0; idx < pilha->qtde; idx++)
+  {
+    if(atual->acao == 'a'){
+      printf("%s foi adicionado da fila\n", atual->ficha->dados->nome);
+    }
+    else{
+      printf("%s foi removido da fila\n", atual->ficha->dados->nome);
+    }
+    atual = atual->proximo;
+  } 
+}
+
+void desfazer_acao(Pilha *pilha, Fila *fila) {
+  int confirmacao = 0;
+  if (pilha->qtde > 0) {
+    EPilha *topo = pilha->topo;
+    //Se alguém foi 'a' (adicionado), ao desfazer deve ser removido na fila
+    if(topo->acao == 'a'){
+      printf("%s sera removido da fila, tem certeza dessa acao? \n 1-)Sim \n 2-)Nao\n", topo->ficha->dados->nome);
+      scanf(" %d", &confirmacao);
+      if(confirmacao != 1){
+        return;
+      }
+      //Se for o último item na fila passa o head e tail para nulos
+      if(fila->qtde == 1){
+        fila->head = NULL;
+        fila->tail = NULL;
+      }
+      else{
+        EFila *atual = fila->head;
+        EFila *anterior = NULL;
+        //Percorre a fila interia para alterar o tail para o anterior na fila, por ser um encadeamento simples
+        while(atual != NULL && atual != topo->ficha){
+          anterior = atual;
+          atual = atual->proximo;
+        }
+        fila->tail = anterior;
+        anterior->proximo = NULL;
+      }
+      fila->qtde--;
+    }
+    //Se alguém foi 'r' (removido), ao desfazer deve ser adicionado na fila
+    else{
+      printf("%s sera adicionado novamente da fila, tem certeza dessa acao? \n 1-)Sim \n 2-)Nao\n", topo->ficha->dados->nome);
+      scanf(" %d", &confirmacao);
+      if(confirmacao != 1){
+        return;
+      }
+      //Se não tiver nenhum outro item na fila esse se torna o head e tail
+      if(fila->qtde == 0){
+        fila->head = topo->ficha;
+        fila->tail = topo->ficha;
+      }
+      else{
+        topo->ficha->proximo = fila->head;
+        fila->head = topo->ficha;
+      }
+      fila->qtde++;  
+    }
+    pilha->topo = pilha->topo->proximo;
+    pilha->qtde--;
+    free(topo);
+    return;
+  } 
+  else{
+    printf("Nao existem acoes para desfazer\n");
+    return;
+  }
+}
+
 //ATENDIMENTO
 
 //Usuário digita o nome do paciente a ser adicionado na fila para o atendimento
-void enfileirar_paciente(Lista *lista, Fila *fila){
+void enfileirar_paciente(Lista *lista, Fila *fila, Pilha *pilha){
   printf("Qual o RG de quem voce deseja inserir no antendimento?\n");
   ELista *aux = procurar_paciente(lista);
   if(aux == NULL){
@@ -396,11 +510,12 @@ void enfileirar_paciente(Lista *lista, Fila *fila){
   }
   fila->tail = novo;
   fila->qtde++;
+  salvar_adicionar_fila(novo, pilha);
   printf("%s foi adicionado na fila para atendimento\n", aux->dados->nome);
 }
 
 //Retira o primeiro paciente que foi adicionado na fila
-void desenfileirar_paciente(Fila *fila){
+void desenfileirar_paciente(Fila *fila, Pilha *pilha){
   if(fila->qtde == 0){
     printf("A fila esta vazia\n");
     return;
@@ -413,8 +528,8 @@ void desenfileirar_paciente(Fila *fila){
   else{
     fila->head = fila->head->proximo;
   }
+  salvar_remover_fila(aux, pilha);
   printf("%s foi removido da fila de atendimento\n", aux->dados->nome);
-  free(aux);
   fila->qtde--;
 }
 
@@ -482,7 +597,6 @@ void construir(Heap *heap) {
 void mostrar_fila_prioriaria(Heap *heap) {
   if(heap->qtde == 0){
     printf("Ninguem esta na fila prioritaria\n");
-    Sleep(1500);
     return;
   }
   int idx;
@@ -523,30 +637,11 @@ void remover_fila_prioriaria(Heap *heap) {
   }
 }
 
-//DESFAZER
-
-void salvar_acao(Fila *fila, EFila *acao, Pilha *pilha, char tipo){
-}
-
-void desfazer_acao(Pilha *pilha) {
-  if (pilha->qtde > 0) {
-    EFila *topo = pilha->topo;
-    pilha->topo = pilha->topo->proximo;
-    pilha->qtde--;
-    free(topo);
-    return;
-  } 
-  else{
-    printf("Nao ha acoes para desfazer\n");
-    Sleep(1500);
-    return;
-  }
-}
-
 int main(){
   Lista *lista = cria_lista();
   Fila *fila = cria_fila();
   Heap *fila_prioritaria = cria_heap();
+  Pilha *desfazer = cria_pilha();
   int menuEscolha = 0, segundaEscolha = 0, sair = 0;
   cadastrar_automatico(lista, "Geno Erti", 22, 1234567, 30, 4, 2025);
   cadastrar_automatico(lista, "Buno Gano", 23, 12345678, 23, 02, 2025);
@@ -606,13 +701,13 @@ int main(){
       {
       case 1:
         //Enfileirar paciente
-        enfileirar_paciente(lista, fila);
+        enfileirar_paciente(lista, fila, desfazer);
         Sleep(1500);
         break;
         
       case 2:
         //Desenfileirar paciente
-        desenfileirar_paciente(fila);
+        desenfileirar_paciente(fila, desfazer);
         Sleep(1500);
         break;
         
@@ -667,6 +762,27 @@ int main(){
     
     case 5:
       //Desfazer
+      printf("Atendimento Prioritario: \n 1-)Desfazer ultima acao \n 2-)Ver ultimas acoes \n");
+      scanf(" %d", &segundaEscolha);
+      switch (segundaEscolha)
+      {
+      case 1:
+        //Enfileirar paciente
+        desfazer_acao(desfazer, fila);
+        break;
+        
+      case 2:
+        //Desenfileirar paciente
+        operacoes_na_fila(desfazer);
+        Sleep(1500);
+        break;
+
+      default:
+      printf("Opcao Invalida\n");
+      Sleep(1500);
+        break;
+      }
+
       break;
     
     case 6:
