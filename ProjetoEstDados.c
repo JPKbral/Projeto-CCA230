@@ -270,7 +270,7 @@ void mostrar_lista(Lista *lista){
   }
 
   ELista *atual = lista->inicio;
-  printf("\n--------------------------------\n");
+  printf("\n--------------------------------\n\n");
   while(atual != NULL){
     imprimir_registro(atual->dados);
     atual = atual->proximo;
@@ -599,11 +599,12 @@ void mostrar_fila_prioriaria(Heap *heap) {
     printf("Ninguem esta na fila prioritaria\n");
     return;
   }
+  printf("\n--------------------------------\n");
   int idx;
   for(idx = 0; idx < heap->qtde; idx++){
     printf("%d -) %s - Idade: %d\n", idx+1, heap->dados[idx]->nome, heap->dados[idx]->idade);
   }
-  printf("\n");
+  printf("--------------------------------\n");
 }
 
 void inserir_fila_prioriaria(Lista *lista, Heap *heap) {
@@ -637,7 +638,76 @@ void remover_fila_prioriaria(Heap *heap) {
   }
 }
 
+//Carregar/Salvar
+
+void carregar_arquivo(FILE *arquivo, Lista *lista){
+  arquivo = fopen("cadatros_pacientes.txt", "r");
+  //Verifica se o arquivo foi aberto
+  if(arquivo == NULL){
+    printf("Erro ao abrir o arquivo\n");
+  }
+  int numero;
+  float decimal;
+  while(fscanf(arquivo,"%d %f", &numero, &decimal) != EOF){
+    //Carrega valores lidos
+    printf("Numero: %d, Decimal: %f", numero, decimal);
+  }
+  //Fecha o arquivo
+  fclose(arquivo);
+  printf("Dados carregados com sucesso\n");
+}
+
+void salvar_arquivo(FILE *arquivo, Lista *lista){
+  arquivo = fopen("cadatros_pacientes.txt", "w");
+  //Verifica se o arquivo foi aberto
+  if(arquivo == NULL){
+    printf("Erro ao abrir o arquivo\n");
+    return;
+  }
+  //Salva os cadastros no arquivo
+  //Realiza as mesmas ações que "mostrar_lista", porém para salvar no arquivo
+  if(lista->qtde == 0){
+    fprintf(arquivo, "Ninguem está na lista\n");
+    //Fecha o arquivo
+    fclose(arquivo);
+    printf("Dados salvos com sucesso\n");
+    return;
+  }
+
+  ELista *atual = lista->inicio;
+  fprintf(arquivo, "\n--------------------------------\n\n");
+  while(atual != NULL){
+    fprintf(arquivo, "Nome: %s\n", atual->dados->nome);
+    fprintf(arquivo, "Idade: %d\n", atual->dados->idade);
+    fprintf(arquivo, "RG: ");
+    if(atual->dados->rg/1000000000 != 0){
+      fprintf(arquivo, "%03d.%03d.%03d-%d", (atual->dados->rg/10000000), (atual->dados->rg/10000)%1000, (atual->dados->rg/10)%1000, atual->dados->rg%10);
+    }
+    else if(atual->dados->rg/100000000 != 0){
+      fprintf(arquivo, "%02d.%03d.%03d-%d", (atual->dados->rg/10000000), (atual->dados->rg/10000)%1000, (atual->dados->rg/10)%1000, atual->dados->rg%10);
+    }
+    else if(atual->dados->rg/10000000 != 0){
+      fprintf(arquivo, "%01d.%03d.%03d-%d", (atual->dados->rg/10000000), (atual->dados->rg/10000)%1000, (atual->dados->rg/10)%1000, atual->dados->rg%10);
+    }
+    else{
+      fprintf(arquivo, "%03d.%03d-%d", (atual->dados->rg/10000)%1000, (atual->dados->rg/10)%1000, atual->dados->rg%10);
+    }
+    fprintf(arquivo, "\n");
+    fprintf(arquivo, "Entrada: ");
+    fprintf(arquivo, "%d/%d/%d", atual->dados->entrada->dia, atual->dados->entrada->mes, atual->dados->entrada->ano);
+    fprintf(arquivo, "\n");
+    atual = atual->proximo;
+    fprintf(arquivo, "\n");
+  }
+  fprintf(arquivo, "--------------------------------\n");
+  //Fecha o arquivo
+  fclose(arquivo);
+
+  printf("Dados salvos com sucesso\n");
+}
+
 int main(){
+  FILE *arquivo;
   Lista *lista = cria_lista();
   Fila *fila = cria_fila();
   Heap *fila_prioritaria = cria_heap();
@@ -787,6 +857,7 @@ int main(){
     
     case 6:
       //Carregar/Salvar
+      salvar_arquivo(arquivo, lista);
       break;
     
     case 7:
