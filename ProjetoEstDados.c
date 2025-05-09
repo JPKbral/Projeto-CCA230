@@ -265,11 +265,19 @@ void cadastrar_automatico(Lista *lista, const char *nome, int idade, long rg, in
   Registro *registro = cria_registro(nome, idade, rg, entrada);
   ELista *elista = cria_elista(registro);
   //Limpa a lista
-  //Insere o novo cadastro no início da lista
-  if(lista->qtde != 0){
-    elista->proximo = lista->inicio;
+  //Insere o novo cadastro no final da lista, para manter a ordem no arquivo de salvar e no terminal
+  if(lista->qtde == 0){
+    lista->inicio = elista;
   }
-  lista->inicio = elista;
+  else{
+    ELista *aux = lista->inicio;
+    ELista *anterior = NULL;
+    while(aux != NULL){
+      anterior = aux;
+      aux = aux->proximo;
+    }
+    anterior->proximo = elista;
+  }
   lista->qtde++;
 }
 
@@ -722,7 +730,7 @@ long rg_numeros(char rg_string[14]) {
 }
 
 void carregar_arquivo(FILE *arquivo, Lista *lista){
-  arquivo = fopen("carregar_cadatros_pacientes.txt", "r");
+  arquivo = fopen("carregar_cadastros_pacientes.txt", "r");
   //Verifica se o arquivo foi aberto
   if(arquivo == NULL){
     printf("Erro ao abrir o arquivo\n");
@@ -774,36 +782,9 @@ void carregar_arquivo(FILE *arquivo, Lista *lista){
   printf("Dados carregados com sucesso\n");
 }
 
-void imprimir_no_arquivo(FILE *arquivo, Lista *lista, ELista *atual){
-  //Vai até o final da lista para salvar no arquivo
-  if(atual == NULL){
-    return;
-  }
-  imprimir_no_arquivo(arquivo, lista, atual->proximo);
-
-  fprintf(arquivo, "Nome: %s\n", atual->dados->nome);
-  fprintf(arquivo, "Idade: %d\n", atual->dados->idade);
-  fprintf(arquivo, "RG: ");
-  if(atual->dados->rg/1000000000 != 0){
-    fprintf(arquivo, "%03d.%03d.%03d-%d", (atual->dados->rg/10000000), (atual->dados->rg/10000)%1000, (atual->dados->rg/10)%1000, atual->dados->rg%10);
-  }
-  else if(atual->dados->rg/100000000 != 0){
-    fprintf(arquivo, "%02d.%03d.%03d-%d", (atual->dados->rg/10000000), (atual->dados->rg/10000)%1000, (atual->dados->rg/10)%1000, atual->dados->rg%10);
-  }
-  else if(atual->dados->rg/10000000 != 0){
-    fprintf(arquivo, "%01d.%03d.%03d-%d", (atual->dados->rg/10000000), (atual->dados->rg/10000)%1000, (atual->dados->rg/10)%1000, atual->dados->rg%10);
-  }
-  else{
-    fprintf(arquivo, "%03d.%03d-%d", (atual->dados->rg/10000)%1000, (atual->dados->rg/10)%1000, atual->dados->rg%10);
-  }
-  fprintf(arquivo, "\n");
-  fprintf(arquivo, "Entrada: ");
-  fprintf(arquivo, "%d/%d/%d", atual->dados->entrada->dia, atual->dados->entrada->mes, atual->dados->entrada->ano);
-  fprintf(arquivo, "\n\n");
-}
 
 void salvar_arquivo(FILE *arquivo, Lista *lista){
-  arquivo = fopen("salvar_cadatros_pacientes.txt", "w");
+  arquivo = fopen("salvar_cadastros_pacientes.txt", "w");
   //Verifica se o arquivo foi aberto
   if(arquivo == NULL){
     printf("Erro ao abrir o arquivo\n");
@@ -819,8 +800,31 @@ void salvar_arquivo(FILE *arquivo, Lista *lista){
     return;
   }
 
+  ELista *atual = lista->inicio;
   fprintf(arquivo, "\n--------------------------------\n\n");
-  imprimir_no_arquivo(arquivo, lista, lista->inicio);
+  while(atual != NULL){
+    fprintf(arquivo, "Nome: %s\n", atual->dados->nome);
+    fprintf(arquivo, "Idade: %d\n", atual->dados->idade);
+    fprintf(arquivo, "RG: ");
+    if(atual->dados->rg/1000000000 != 0){
+      fprintf(arquivo, "%03d.%03d.%03d-%d", (atual->dados->rg/10000000), (atual->dados->rg/10000)%1000, (atual->dados->rg/10)%1000, atual->dados->rg%10);
+    }
+    else if(atual->dados->rg/100000000 != 0){
+      fprintf(arquivo, "%02d.%03d.%03d-%d", (atual->dados->rg/10000000), (atual->dados->rg/10000)%1000, (atual->dados->rg/10)%1000, atual->dados->rg%10);
+    }
+    else if(atual->dados->rg/10000000 != 0){
+      fprintf(arquivo, "%01d.%03d.%03d-%d", (atual->dados->rg/10000000), (atual->dados->rg/10000)%1000, (atual->dados->rg/10)%1000, atual->dados->rg%10);
+    }
+    else{
+      fprintf(arquivo, "%03d.%03d-%d", (atual->dados->rg/10000)%1000, (atual->dados->rg/10)%1000, atual->dados->rg%10);
+    }
+    fprintf(arquivo, "\n");
+    fprintf(arquivo, "Entrada: ");
+    fprintf(arquivo, "%d/%d/%d", atual->dados->entrada->dia, atual->dados->entrada->mes, atual->dados->entrada->ano);
+    fprintf(arquivo, "\n");
+    atual = atual->proximo;
+    fprintf(arquivo, "\n");
+  }
   fprintf(arquivo, "--------------------------------\n");
   //Fecha o arquivo
   fclose(arquivo);
