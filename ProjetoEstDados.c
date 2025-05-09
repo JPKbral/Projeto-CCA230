@@ -89,6 +89,16 @@ Registro *cria_registro(const char *nome, int idade, long rg, Data *entrada){
   return registro;
 }
 
+Registro *cria_registro_vazio(){
+  Registro *registro = malloc(sizeof(Registro));
+  Data *data = cria_data(0, 0, 0);
+  registro->nome = NULL;
+  registro->idade = 0;
+  registro->rg = 0;
+  registro->entrada = data;
+  return registro;
+}
+
 ELista *cria_elista(Registro *registro){
   ELista *elista = malloc(sizeof(ELista));
   elista->dados = registro;
@@ -169,6 +179,42 @@ ELista *procurar_paciente(Lista *lista){
   return atual;
 }
 
+boolean verificar_rg_lista(Lista *lista, int rg){
+  ELista *atual = lista->inicio;
+  int i;
+  for(i = 0; i < lista->qtde; i++){
+    if(atual->dados->rg == rg){
+      return FALSE;
+    }
+    atual = atual->proximo;
+  }
+  return TRUE;
+}
+
+boolean verificar_rg_fila(Fila *fila, int rg){
+  EFila *atual = fila->head;
+  int i;
+  for(i = 0; i < fila->qtde; i++){
+    if(atual->dados->rg == rg){
+      return FALSE;
+    }
+    atual = atual->proximo;
+  }
+  return TRUE;
+
+}
+
+boolean verificar_rg_fila_prioritaria(Heap *heap, int rg){
+  int idx;
+  for(idx = 0; idx < heap->qtde; idx++){
+    if(heap->dados[idx]->rg == rg){
+      return FALSE;
+    }
+  }
+  return TRUE;
+
+}
+
 //CADASTRAR
 
 //Faz as perguntas necessárias para criar um cadastro completo e o insere na lista
@@ -188,6 +234,11 @@ void cadastrar_manual(Lista *lista){
     Sleep(1500);
     return;
   }
+  //Verifica se o RG já existe na lista
+  if(verificar_rg_lista(lista, rg) == FALSE){
+    printf("Esse RG ja possui um cadastro\n");
+    return;
+  }
   printf("Qual o dia de entrada?\n");
   scanf(" %d", &dia);
   printf("Qual o mes de entrada?\n");
@@ -202,13 +253,18 @@ void cadastrar_manual(Lista *lista){
   }
   lista->inicio = elista;
   lista->qtde++;
+  printf("Cadastro realizado\n");
 }
 
 //Para utilizar com o arquivo
 void cadastrar_automatico(Lista *lista, const char *nome, int idade, long rg, int dia, int mes, int ano){
+  if(verificar_rg_lista(lista, rg) == FALSE){
+    return;
+  }
   Data *entrada = cria_data(dia, mes, ano);
   Registro *registro = cria_registro(nome, idade, rg, entrada);
   ELista *elista = cria_elista(registro);
+  //Limpa a lista
   //Insere o novo cadastro no início da lista
   if(lista->qtde != 0){
     elista->proximo = lista->inicio;
@@ -499,6 +555,10 @@ void enfileirar_paciente(Lista *lista, Fila *fila, Pilha *pilha){
     printf("Pessoa nao foi encontrada\n");
     return;
   }
+  if(verificar_rg_fila(fila, aux->dados->rg) == FALSE){
+    printf("Esse RG ja esta na fila\n");
+    return;
+  }
   EFila *novo = cria_efila(aux->dados);
   //Se for o único item na lista
   if(fila->qtde == 0){
@@ -543,7 +603,9 @@ void mostrar_fila(Fila *fila){
   int idx = 1;
   printf("\n--------------------------------\n");
   while(atual != NULL){
-    printf("%d -) %s\n", idx, atual->dados->nome);
+    printf("%d -) %s, RG: ", idx, atual->dados->nome);
+    imprimir_rg(atual->dados->rg);
+    printf("\n");
     atual = atual->proximo;
     idx++;
   }
@@ -594,7 +656,7 @@ void construir(Heap *heap) {
   }
 }
 
-void mostrar_fila_prioriaria(Heap *heap) {
+void mostrar_fila_prioritaria(Heap *heap) {
   if(heap->qtde == 0){
     printf("Ninguem esta na fila prioritaria\n");
     return;
@@ -602,12 +664,14 @@ void mostrar_fila_prioriaria(Heap *heap) {
   printf("\n--------------------------------\n");
   int idx;
   for(idx = 0; idx < heap->qtde; idx++){
-    printf("%d -) %s - Idade: %d\n", idx+1, heap->dados[idx]->nome, heap->dados[idx]->idade);
+    printf("%d -) %s - Idade: %d, RG: ", idx+1, heap->dados[idx]->nome, heap->dados[idx]->idade);
+  imprimir_rg(heap->dados[idx]->rg);
+  printf("\n");
   }
   printf("--------------------------------\n");
 }
 
-void inserir_fila_prioriaria(Lista *lista, Heap *heap) {
+void inserir_fila_prioritaria(Lista *lista, Heap *heap) {
   if(heap->qtde == LEN){
     return;
   }
@@ -617,6 +681,10 @@ void inserir_fila_prioriaria(Lista *lista, Heap *heap) {
     printf("Pessoa nao foi encontrada\n");
     return;
   }
+  if(verificar_rg_fila_prioritaria(heap, atual->dados->rg) == FALSE){
+    printf("Esse RG ja esta na fila prioritaria");
+    return;
+  }
   Registro *dado = atual->dados;
   heap->dados[heap->qtde] = dado;
   heap->qtde++;
@@ -624,7 +692,7 @@ void inserir_fila_prioriaria(Lista *lista, Heap *heap) {
   printf("%s foi adicionado na fila prioritaria\n", atual->dados->nome);
 }
 
-void remover_fila_prioriaria(Heap *heap) {
+void remover_fila_prioritaria(Heap *heap) {
   int i = 0;
   if(heap->qtde == 0){
     printf("Ninguem esta na fila prioritaria\n");
@@ -640,18 +708,67 @@ void remover_fila_prioriaria(Heap *heap) {
 
 //Carregar/Salvar
 
+long rg_numeros(char rg_string[14]) {
+  long numeros = 0;
+  int i = 0, j = 0;
+  while(rg_string[i] != '\0') {
+      if (rg_string[i] != '.' && rg_string[i] != '-' && rg_string[i] != '\0') {
+        numeros = numeros*10 + (rg_string[i] - 48);
+        j++;
+      }
+      i++;
+  }
+  return numeros;
+}
+
 void carregar_arquivo(FILE *arquivo, Lista *lista){
   arquivo = fopen("cadatros_pacientes.txt", "r");
   //Verifica se o arquivo foi aberto
   if(arquivo == NULL){
     printf("Erro ao abrir o arquivo\n");
   }
-  int numero;
-  float decimal;
-  while(fscanf(arquivo,"%d %f", &numero, &decimal) != EOF){
-    //Carrega valores lidos
-    printf("Numero: %d, Decimal: %f", numero, decimal);
-  }
+
+  Registro *novo = cria_registro_vazio();
+  char verificar[80];
+  char linha[14];
+  char nome[80];
+  int idade = 0, dia = 0, mes = 0, ano = 0;
+  long rg = 0;
+  linha[0] = 'v';
+
+  //Lê o arquivo até a última linha ou encontrar um erro
+  while (fgets(verificar, sizeof(verificar), arquivo)) {
+    //Se a linha começa com '-' ou '\n' toda linha é descartada
+    if (verificar[0] == '-' || verificar[0] == '\n') {
+        //Volta para o começo do While
+        continue;
+    }
+
+    //Salva o nome no registro novo
+    //%[^\n] lê sem considerar '\n'
+    if(sscanf(verificar, "Nome: %[^\n]", nome) == 1){}
+    //Salva o idade no registro novo
+    else if(sscanf(verificar, "Idade: %d\n", &idade) == 1){}
+    //Salva o RG no registro novo
+    //Garante que vão passar o rg como 13 char para a função
+    else if(sscanf(verificar, "RG: %13s\n", &linha) == 1){
+      //Converte string em long se linha não estiver vazia
+      if(linha[0] != 'v'){
+          rg = rg_numeros(linha);
+          linha[0] = 'v';
+      }
+    }
+    //Salva a entrada no registro novo
+    else if(sscanf(verificar, "Entrada: %d/%d/%d\n", &dia, &mes, &ano)){}
+    
+    //Salva o registro na lista
+    if(ano != 0){
+      //Se tiver todos os dados salva como um cadastro
+      cadastrar_automatico(lista, nome, idade, rg, dia, mes, ano);
+      //Limpa a estrutura para recerber outros cadastros
+      ano = 0;
+    }
+  }  
   //Fecha o arquivo
   fclose(arquivo);
   printf("Dados carregados com sucesso\n");
@@ -713,9 +830,6 @@ int main(){
   Heap *fila_prioritaria = cria_heap();
   Pilha *desfazer = cria_pilha();
   int menuEscolha = 0, segundaEscolha = 0, sair = 0;
-  cadastrar_automatico(lista, "Geno Erti", 22, 1234567, 30, 4, 2025);
-  cadastrar_automatico(lista, "Buno Gano", 23, 12345678, 23, 02, 2025);
-  cadastrar_automatico(lista, "Ben Or", 67, 123456789, 11, 9, 2024);
   while(sair == 0){
     printf("Menu: \n 1-)Cadastrar \n 2-)Atendimento \n 3-)Atendimento Prioritario \n 4-)Pesquisa \n 5-)Desfazer \n 6-)Carregar/Salvar \n 7-)Sobre \n 8-)Sair \n ");
     scanf(" %d", &menuEscolha);
@@ -730,6 +844,7 @@ int main(){
       case 1:
         //Cadastrar novo paciente
         cadastrar_manual(lista);
+        Sleep(1500);
         break;
         
       case 2:
@@ -802,19 +917,19 @@ int main(){
       {
       case 1:
         //Enfileirar paciente
-        inserir_fila_prioriaria(lista, fila_prioritaria);
+        inserir_fila_prioritaria(lista, fila_prioritaria);
         Sleep(1500);
         break;
         
       case 2:
         //Desenfileirar paciente
-        remover_fila_prioriaria(fila_prioritaria);
+        remover_fila_prioritaria(fila_prioritaria);
         Sleep(1500);
         break;
         
       case 3:
         //Mostrar fila
-        mostrar_fila_prioriaria(fila_prioritaria);
+        mostrar_fila_prioritaria(fila_prioritaria);
         Sleep(1500);
         break;
 
@@ -857,7 +972,26 @@ int main(){
     
     case 6:
       //Carregar/Salvar
-      salvar_arquivo(arquivo, lista);
+      printf("Carregar/Salvar: \n 1-)Carregar um Arquivo \n 2-)Salvar um Arquivo \n");
+      scanf(" %d", &segundaEscolha);
+      switch (segundaEscolha)
+      {
+      case 1:
+        //Carregar um Arquivo
+        carregar_arquivo(arquivo, lista);
+        break;
+        
+      case 2:
+        //Salvar um Arquivo
+        salvar_arquivo(arquivo, lista);
+        Sleep(1500);
+        break;
+
+      default:
+      printf("Opcao Invalida\n");
+      Sleep(1500);
+        break;
+      }
       break;
     
     case 7:
