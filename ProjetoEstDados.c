@@ -401,7 +401,7 @@ void atualizar_dados(Lista *lista){
 }
 
 //Exclui o paciente que o usuário digitar o nome
-void remover_paciente(Lista *lista){
+void remover_paciente(Lista *lista, Fila *fila, Heap *heap){
   if(lista->qtde == 0){
     printf("A lista esta vazia\n");
     return;
@@ -418,6 +418,14 @@ void remover_paciente(Lista *lista){
   }
   if(atual == NULL){
     printf("Pessoa nao foi encontrada\n");
+    return;
+  }
+  if(verificar_rg_fila(fila, rg) == FALSE){
+    printf("Impossivel remover o cadastro, pois ele esta registrado na fila\n");
+    return;
+  }
+  else if(verificar_rg_fila_prioritaria(heap, rg) == FALSE){
+    printf("Impossivel remover o cadastro, pois ele esta registrado na fila prioritaria\n");
     return;
   }
   //A lista fica vazia se possuir apenas o cadastro a ser removimo
@@ -715,7 +723,6 @@ void remover_fila_prioritaria(Heap *heap) {
 }
 
 //Carregar/Salvar
-
 long rg_numeros(char rg_string[14]) {
   long numeros = 0;
   int i = 0, j = 0;
@@ -876,7 +883,7 @@ int main(){
 
       case 5:
         //Remover cadastro do paciente
-        remover_paciente(lista);
+        remover_paciente(lista, fila, fila_prioritaria);
         Sleep(1500);
         break;
       
