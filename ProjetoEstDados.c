@@ -420,13 +420,30 @@ void remover_paciente(Lista *lista, Fila *fila, Heap *heap){
     printf("Pessoa nao foi encontrada\n");
     return;
   }
-  if(verificar_rg_fila(fila, rg) == FALSE){
-    printf("Impossivel remover o cadastro, pois ele esta registrado na fila\n");
-    return;
+  int confirmar = 0;
+  if(verificar_rg_fila_prioritaria(heap, rg) == FALSE && verificar_rg_fila(fila, rg) == FALSE){
+    printf("O cadastro esta registrado na fila prioritaria e na fila\n 1-)Seguir para remover o paciente\n 2-)Cancelar\n");
+    scanf(" %d", &confirmar);
+    if(confirmar != 1){
+      printf("Remocao cancelada");
+      return;
+    }
+  }
+  else if(verificar_rg_fila(fila, rg) == FALSE){
+    printf("O cadastro esta registrado na fila\n 1-)Seguir para remover o paciente\n 2-)Cancelar\n");
+    scanf(" %d", &confirmar);
+    if(confirmar != 1){
+      printf("Remocao cancelada");
+      return;
+    }
   }
   else if(verificar_rg_fila_prioritaria(heap, rg) == FALSE){
-    printf("Impossivel remover o cadastro, pois ele esta registrado na fila prioritaria\n");
-    return;
+    printf("O cadastro esta registrado na fila prioritaria\n 1-)Seguir para remover o paciente\n 2-)Cancelar\n");
+    scanf(" %d", &confirmar);
+    if(confirmar != 1){
+      printf("Remocao cancelada");
+      return;
+    }
   }
   //A lista fica vazia se possuir apenas o cadastro a ser removimo
   if(lista->qtde == 1){
@@ -557,6 +574,7 @@ void desfazer_acao(Pilha *pilha, Fila *fila) {
   } 
   else{
     printf("Nao existem acoes para desfazer\n");
+    Sleep(1500);
     return;
   }
 }
@@ -564,7 +582,7 @@ void desfazer_acao(Pilha *pilha, Fila *fila) {
 //ATENDIMENTO
 
 //Usuário digita o nome do paciente a ser adicionado na fila para o atendimento
-void enfileirar_paciente(Lista *lista, Fila *fila, Pilha *pilha){
+void enfileirar_paciente(Lista *lista, Fila *fila, Pilha *pilha, Heap *heap){
   printf("Qual o RG de quem voce deseja inserir no antendimento?\n");
   ELista *aux = procurar_paciente(lista);
   if(aux == NULL){
@@ -574,6 +592,15 @@ void enfileirar_paciente(Lista *lista, Fila *fila, Pilha *pilha){
   if(verificar_rg_fila(fila, aux->dados->rg) == FALSE){
     printf("Esse RG ja esta na fila\n");
     return;
+  }
+  int confirmar = 0;
+  if(verificar_rg_fila_prioritaria(heap, aux->dados->rg) == FALSE){
+    printf("Esse cadastro ja esta na fila prioritaria, ainda deseja adiciona-lo na fila?\n 1-)Adicionar o paciente\n 2-)Cancelar\n");
+    scanf(" %d", &confirmar);
+    if(confirmar != 1){
+      printf("O paciente nao foi adicionado na fila\n");
+      return;
+    }
   }
   EFila *novo = cria_efila(aux->dados);
   //Se for o único item na lista
@@ -687,7 +714,7 @@ void mostrar_fila_prioritaria(Heap *heap) {
   printf("--------------------------------\n");
 }
 
-void inserir_fila_prioritaria(Lista *lista, Heap *heap) {
+void inserir_fila_prioritaria(Lista *lista, Heap *heap, Fila *fila) {
   if(heap->qtde == LEN){
     return;
   }
@@ -700,6 +727,15 @@ void inserir_fila_prioritaria(Lista *lista, Heap *heap) {
   if(verificar_rg_fila_prioritaria(heap, atual->dados->rg) == FALSE){
     printf("Esse RG ja esta na fila prioritaria");
     return;
+  }
+  int confirmar = 0;
+  if(verificar_rg_fila(fila, atual->dados->rg) == FALSE){
+    printf("Esse cadastro ja esta na fila, ainda deseja adiciona-lo na fila prioritaria?\n 1-)Adicionar o paciente\n 2-)Cancelar\n");
+    scanf(" %d", &confirmar);
+    if(confirmar != 1){
+      printf("O paciente nao foi adicionado na fila\n");
+      return;
+    }
   }
   Registro *dado = atual->dados;
   heap->dados[heap->qtde] = dado;
@@ -902,7 +938,7 @@ int main(){
       {
       case 1:
         //Enfileirar paciente
-        enfileirar_paciente(lista, fila, desfazer);
+        enfileirar_paciente(lista, fila, desfazer, fila_prioritaria);
         Sleep(1500);
         break;
         
@@ -933,7 +969,7 @@ int main(){
       {
       case 1:
         //Enfileirar paciente
-        inserir_fila_prioritaria(lista, fila_prioritaria);
+        inserir_fila_prioritaria(lista, fila_prioritaria, fila);
         Sleep(1500);
         break;
         
