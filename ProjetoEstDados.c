@@ -218,7 +218,7 @@ boolean verificar_rg_fila_prioritaria(Heap *heap, int rg){
 //CADASTRAR
 
 //Faz as perguntas necessárias para criar um cadastro completo e o insere na lista
-void cadastrar_manual(Lista *lista){
+void cadastrar_manual(Lista *lista, ABB *abb_idade, ABB *abb_ano, ABB *abb_mes, ABB *abb_dia){
   int dia, mes, ano, idade;
   char nome[NAME];
   long rg;
@@ -248,6 +248,10 @@ void cadastrar_manual(Lista *lista){
   Data *entrada = cria_data(dia, mes, ano);
   Registro *registro = cria_registro(nome, idade, rg, entrada);
   ELista *elista = cria_elista(registro);
+  inserir_abb_idade(abb_idade, registro);
+  inserir_abb_ano(abb_ano, registro);
+  inserir_abb_mes(abb_mes, registro);
+  inserir_abb_dia(abb_dia, registro);
   if(lista->qtde != 0){
     elista->proximo = lista->inicio;
   }
@@ -278,6 +282,7 @@ void cadastrar_automatico(Lista *lista, const char *nome, int idade, long rg, in
     }
     anterior->proximo = elista;
   }
+
   lista->qtde++;
 }
 
@@ -962,7 +967,7 @@ long rg_numeros(char rg_string[14]) {
   return numeros;
 }
 
-void carregar_arquivo(FILE *arquivo, Lista *lista){
+void carregar_arquivo(FILE *arquivo, Lista *lista, ABB *abb_idade, ABB *abb_ano, ABB *abb_mes, ABB *abb_dia){
   arquivo = fopen("carregar_cadastros_pacientes.txt", "r");
   //Verifica se o arquivo foi aberto
   if(arquivo == NULL){
@@ -1006,6 +1011,16 @@ void carregar_arquivo(FILE *arquivo, Lista *lista){
     if(ano != 0){
       //Se tiver todos os dados salva como um cadastro
       cadastrar_automatico(lista, nome, idade, rg, dia, mes, ano);
+      // Recupera o registro inserido
+      ELista *inserido = lista->inicio;
+      while (inserido->proximo != NULL) {
+          inserido = inserido->proximo;
+      }
+      // Insere nas arvores
+      inserir_abb_idade(abb_idade, inserido->dados);
+      inserir_abb_ano(abb_ano, inserido->dados);
+      inserir_abb_mes(abb_mes, inserido->dados);
+      inserir_abb_dia(abb_dia, inserido->dados);
       //Limpa a estrutura para recerber outros cadastros
       ano = 0;
     }
@@ -1071,6 +1086,10 @@ int main(){
   Fila *fila = cria_fila();
   Heap *fila_prioritaria = cria_heap();
   Pilha *desfazer = cria_pilha();
+  ABB *abb_ano = cria_abb();
+  ABB *abb_mes = cria_abb();
+  ABB *abb_dia = cria_abb();
+  ABB *abb_idade = cria_abb();
   int menuEscolha = 0, segundaEscolha = 0, sair = 0;
   while(sair == 0){
     printf("Menu: \n 1-)Cadastrar \n 2-)Atendimento \n 3-)Atendimento Prioritario \n 4-)Pesquisa \n 5-)Desfazer \n 6-)Carregar/Salvar \n 7-)Sobre \n 8-)Sair \n ");
@@ -1085,7 +1104,7 @@ int main(){
       {
       case 1:
         //Cadastrar novo paciente
-        cadastrar_manual(lista);
+        cadastrar_manual(lista, abb_idade, abb_ano, abb_mes, abb_dia);
         Sleep(1500);
         break;
         
@@ -1189,16 +1208,16 @@ int main(){
       scanf("%d", &segundaEscolha);
       switch (segundaEscolha) {
           case 1:
-            mostrar_abb_em_ordem(abb_ano->raiz); // ABB ordenada por ano
+            mostrar_in_ordem(abb_ano->raiz); // ABB ordenada por ano
             break;
           case 2:
-            mostrar_abb_em_ordem(abb_mes->raiz); // ABB ordenada por mês
+            mostrar_in_ordem(abb_mes->raiz); // ABB ordenada por mês
             break;
           case 3:
-            mostrar_abb_em_ordem(abb_dia->raiz); // ABB ordenada por dia
+            mostrar_in_ordem(abb_dia->raiz); // ABB ordenada por dia
             break;
           case 4:
-            mostrar_abb_em_ordem(abb_idade->raiz); // ABB ordenada por idade
+            mostrar_in_ordem(abb_idade->raiz); // ABB ordenada por idade
             break;
     }
 
@@ -1237,7 +1256,7 @@ int main(){
       {
       case 1:
         //Carregar um Arquivo
-        carregar_arquivo(arquivo, lista);
+        carregar_arquivo(arquivo, lista, abb_idade, abb_ano, abb_mes, abb_dia);
         Sleep(1500);
         break;
         

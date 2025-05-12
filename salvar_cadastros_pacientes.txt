@@ -1,0 +1,19 @@
+
+--------------------------------
+
+Nome: Ben Or
+Idade: 67
+RG: 12.305.678-9
+Entrada: 11/9/2024
+
+Nome: Buno Gano
+Idade: 23
+RG: 1.234.567-8
+Entrada: 23/2/2025
+
+Nome: Geno Erti
+Idade: 22
+RG: 123.456-7
+Entrada: 30/4/2025
+
+--------------------------------
