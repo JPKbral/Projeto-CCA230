@@ -900,6 +900,28 @@ EABB *busca_rg(EABB *raiz, long rg) {
   }
 }
 
+EABB *encontrar_sucessor(EABB *registro) {
+    EABB *atual = registro->filho_dir;
+    while (atual->filho_esq != NULL) {
+        atual = atual->filho_esq;
+    }
+    return atual;
+}
+
+EABB *busca_pai(EABB *raiz, EABB *filho) {
+    if (raiz == NULL || raiz == filho) return NULL;
+
+    if (raiz->filho_esq == filho || raiz->filho_dir == filho) {
+        return raiz;
+    }
+
+    if (filho->dados->rg < raiz->dados->rg) {
+        return busca_pai(raiz->filho_esq, filho);
+    } else {
+        return busca_pai(raiz->filho_dir, filho);
+    }
+}
+
 int remover_abb(ABB *abb, EABB *registro) {
   if (abb->raiz == NULL) {
       return 0; // Árvore vazia
