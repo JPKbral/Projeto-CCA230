@@ -172,7 +172,8 @@ Pilha *cria_pilha(){
   return pilha;
 }
 
-//Usuário digita o nome do paciente e o código cria um ponteiro ELista para o paciente, se existir
+//Usuário digita o RG do paciente e o código cria um ponteiro ELista para o paciente se existir
+//Esse ponteiro é utilizado em outras funções
 ELista *procurar_paciente(Lista *lista){
   int rg;
   scanf(" %d", &rg);
@@ -183,6 +184,7 @@ ELista *procurar_paciente(Lista *lista){
   return atual;
 }
 
+//Função para verificar se um RG existe na lista
 boolean verificar_rg_lista(Lista *lista, int rg){
   ELista *atual = lista->inicio;
   int i;
@@ -195,6 +197,7 @@ boolean verificar_rg_lista(Lista *lista, int rg){
   return TRUE;
 }
 
+//Função para verificar se um RG existe na Fila
 boolean verificar_rg_fila(Fila *fila, int rg){
   EFila *atual = fila->head;
   int i;
@@ -208,6 +211,7 @@ boolean verificar_rg_fila(Fila *fila, int rg){
 
 }
 
+//Função para verificar se um RG existe na Fila prioritária
 boolean verificar_rg_fila_prioritaria(Heap *heap, int rg){
   int idx;
   for(idx = 0; idx < heap->qtde; idx++){
@@ -219,7 +223,7 @@ boolean verificar_rg_fila_prioritaria(Heap *heap, int rg){
 
 }
 
-//Formatação correta para o RG
+//Formatação correta para um RG de 6 a 9 dígitos numéricos, mais o dígito verificador
 void imprimir_rg(long rg){
   if(rg/1000000000 != 0){
     printf("%03d.%03d.%03d-%d", (rg/10000000), (rg/10000)%1000, (rg/10)%1000, rg%10);
@@ -240,7 +244,7 @@ void imprimir_data(Data *data){
   printf("%d/%d/%d", data->dia, data->mes, data->ano);
 }
 
-//Formatação para um registro
+//Formatação para um registro completo
 void imprimir_registro(Registro *registro){
   printf("Nome: %s\n", registro->nome);
   printf("Idade: %d\n", registro->idade);
@@ -383,7 +387,12 @@ void mostrar_pos_ordem(EABB *raiz) {
   }
 }
 
+//Encontrar o RG na árvore
+//comprar é o valor a ser encontrado na árvore e deve confirmar com o rg
+//verificador difere entre idade, dia, mes e ano
+//atual será o ponto de partida para realizar a busca
 EABB *busca_no_abb(EABB *atual, int comparar, char verificador, int rg) {
+  //switch para cada caso de idade('i'), dia('d'), mes('m') e ano('a')
   switch(verificador){
     case 'i':
       while (atual != NULL) {
@@ -485,6 +494,7 @@ EABB *encontrar_sucessor(EABB *registro) {
     return atual;
 }
 
+//Remove um RG da árvore de busca
 int remover_abb(ABB *arvore, EABB *registro) {
   if (arvore->raiz == NULL || registro == NULL) {
     return 0; // Árvore vazia ou registro inválido
@@ -553,7 +563,7 @@ void cadastrar_manual(Lista *lista, ABB *abb_idade, ABB *abb_ano, ABB *abb_mes, 
   scanf(" %d", &idade);
   printf("Qual o rg?\n");
   scanf(" %ld", &rg);
-  //Verifica se o RG possui de 7 a 10 números
+  //Verifica se o RG possui de 6 a 9 dígitos numéricos, mais o verificador
   if(rg<1000000 || rg>99999999999){
     printf("RG invalido\n");
     Sleep(1500);
@@ -585,7 +595,7 @@ void cadastrar_manual(Lista *lista, ABB *abb_idade, ABB *abb_ano, ABB *abb_mes, 
   printf("Cadastro realizado\n");
 }
 
-//Para utilizar com o arquivo
+//Cadastro para utilizar com o carregar arquivo
 void cadastrar_automatico(Lista *lista, const char *nome, int idade, long rg, int dia, int mes, int ano){
   if(verificar_rg_lista(lista, rg) == FALSE){
     return;
@@ -593,7 +603,6 @@ void cadastrar_automatico(Lista *lista, const char *nome, int idade, long rg, in
   Data *entrada = cria_data(dia, mes, ano);
   Registro *registro = cria_registro(nome, idade, rg, entrada);
   ELista *elista = cria_elista(registro);
-  //Limpa a lista
   //Insere o novo cadastro no final da lista, para manter a ordem no arquivo de salvar e no terminal
   if(lista->qtde == 0){
     lista->inicio = elista;
@@ -640,7 +649,7 @@ void mostrar_lista(Lista *lista){
   printf("--------------------------------\n");
 }
 
-//Verificar quem deve ter os dados atualizados e qual dado
+//Verificar quem deve ter os dados atualizados e qual o dado a ser alterado
 void atualizar_dados(Lista *lista){
   printf("Qual o RG da pessoa que voce deseja alterar os dados?\n");
   ELista *atual = procurar_paciente(lista);
@@ -673,7 +682,7 @@ void atualizar_dados(Lista *lista){
     printf("Qual o rg?\n");
     long verificarRg;
     scanf(" %ld", &verificarRg);
-    //Verifica se o RG possui de 7 a 10 números
+    //Verifica se o RG possui de 6 a 9 dígitos numéricos, mais o verificador
     if(verificarRg<1000000 || verificarRg>9999999999){
       printf("RG invalido\n");
       return;
@@ -704,7 +713,7 @@ void remover_paciente(Lista *lista, Fila *fila, Heap *heap, ABB *abb_idade, ABB 
     return;
   }
   printf("Qual o RG de quem deseja excluir?\n");
-  //Não utiliza da função de procura por utilizar do ponteiro 'anterior'
+  //Não utiliza da função 'procurar_paciente' por precisar utilizar do ponteiro 'anterior', já que não é uma lista duplamente encadeada
   int rg;
   scanf(" %d", &rg);
   ELista *atual = lista->inicio;
@@ -717,6 +726,8 @@ void remover_paciente(Lista *lista, Fila *fila, Heap *heap, ABB *abb_idade, ABB 
     printf("Pessoa nao foi encontrada\n");
     return;
   }
+
+  //Verifica se a cadastro a ser removido está em alguma fila e pede confirmação
   int confirmar = 0;
   if(verificar_rg_fila_prioritaria(heap, rg) == FALSE && verificar_rg_fila(fila, rg) == FALSE){
     printf("O cadastro esta registrado na fila prioritaria e na fila\n 1-)Seguir para remover o paciente\n 2-)Cancelar\n");
@@ -743,6 +754,7 @@ void remover_paciente(Lista *lista, Fila *fila, Heap *heap, ABB *abb_idade, ABB 
     }
   }
 
+  //Remove o cadastro das árvores de busca
   EABB *no_idade = busca_no_abb(abb_idade->raiz, atual->dados->idade, 'i', rg);
   if(no_idade != NULL) remover_abb(abb_idade, no_idade);
   
@@ -768,6 +780,7 @@ void remover_paciente(Lista *lista, Fila *fila, Heap *heap, ABB *abb_idade, ABB 
     anterior->proximo = atual->proximo;
   }
 
+  //Confirma a remoção do cadastro
   printf("%s teve o cadastro removido\n", atual->dados->nome);
   free(atual);
   lista->qtde--;
@@ -788,6 +801,7 @@ void consultar_paciente(Lista *lista){
 
 //DESFAZER
 
+//Coloca na pilha uma ação de adicionar um cadastro na fila
 void salvar_adicionar_fila(EFila *ficha, Pilha *pilha){
   EPilha *novo = cria_epilha();
   novo->ficha = ficha;
@@ -800,6 +814,7 @@ void salvar_adicionar_fila(EFila *ficha, Pilha *pilha){
   pilha->qtde++;
 }
 
+//Coloca na pilha uma ação de remover um cadastro na fila
 void salvar_remover_fila(EFila *ficha, Pilha *pilha){
   EPilha *novo = cria_epilha();
   novo->ficha = ficha;
@@ -812,6 +827,7 @@ void salvar_remover_fila(EFila *ficha, Pilha *pilha){
   pilha->qtde++;
 }
 
+//Mostra todas ações realizadas na pilha, difere se foi adicionado ou removido pelo caractere
 void operacoes_na_fila(Pilha *pilha){
   if(pilha->qtde == 0){
     printf("Nenhuma acao para desfazer na fila\n");
@@ -831,6 +847,7 @@ void operacoes_na_fila(Pilha *pilha){
   } 
 }
 
+//Função para remover da pilha e desfazer uma ação na fila
 void desfazer_acao(Pilha *pilha, Fila *fila) {
   int confirmacao = 0;
   if (pilha->qtde > 0) {
@@ -872,6 +889,7 @@ void desfazer_acao(Pilha *pilha, Fila *fila) {
         fila->head = topo->ficha;
         fila->tail = topo->ficha;
       }
+      //É colocado na head da fila
       else{
         topo->ficha->proximo = fila->head;
         fila->head = topo->ficha;
@@ -900,10 +918,12 @@ void enfileirar_paciente(Lista *lista, Fila *fila, Pilha *pilha, Heap *heap){
     printf("Pessoa nao foi encontrada\n");
     return;
   }
+  //Verifica se esse cadastro já está na fila
   if(verificar_rg_fila(fila, aux->dados->rg) == FALSE){
     printf("Esse RG ja esta na fila\n");
     return;
   }
+  //Verifica se esse cadastro já está na fila prioritária e pede confirmação para essa ação
   int confirmar = 0;
   if(verificar_rg_fila_prioritaria(heap, aux->dados->rg) == FALSE){
     printf("Esse cadastro ja esta na fila prioritaria, ainda deseja adiciona-lo na fila?\n 1-)Adicionar o paciente\n 2-)Cancelar\n");
@@ -968,6 +988,7 @@ void mostrar_fila(Fila *fila){
 
 //ATENDIMENTO PRIORITÁRIO
 
+//Calculos para os filhos e pai de um item da heap
 int filho_esq(int pai){
   return 2*pai+1;
 }
@@ -980,6 +1001,7 @@ int pai(int filho){
   return (filho - 1)/2;
 }
 
+//Encontra o último pai da heap para realizar o construir a partir desse item
 int ultimo_pai(Heap *heap){
   if(heap->qtde <= 1){
     return 0;
@@ -987,6 +1009,7 @@ int ultimo_pai(Heap *heap){
   return (heap->qtde/2)-1;
 }
 
+//Corrige a posição dos itens na fila prioritária conforme mais cadastros serem adicionados
 void peneirar(Heap *heap, int pai){
   int aux = pai;
   if (filho_esq(pai) < heap->qtde && heap->dados[filho_esq(pai)]->idade > heap->dados[aux]->idade){
@@ -1003,6 +1026,7 @@ void peneirar(Heap *heap, int pai){
   }
 }
 
+//Realiza o peneirar em toda a heap
 void construir(Heap *heap) {
   int idx;
   for(idx = ultimo_pai(heap); idx >= 0; idx--){
@@ -1010,6 +1034,7 @@ void construir(Heap *heap) {
   }
 }
 
+//Mostra a fila prioritária, com o RG e idade
 void mostrar_fila_prioritaria(Heap *heap) {
   if(heap->qtde == 0){
     printf("Ninguem esta na fila prioritaria\n");
@@ -1025,6 +1050,7 @@ void mostrar_fila_prioritaria(Heap *heap) {
   printf("--------------------------------\n");
 }
 
+//Pergunta qual cadastro deve ser inserido na fila prioritária
 void inserir_fila_prioritaria(Lista *lista, Heap *heap, Fila *fila) {
   if(heap->qtde == LEN){
     return;
@@ -1035,10 +1061,12 @@ void inserir_fila_prioritaria(Lista *lista, Heap *heap, Fila *fila) {
     printf("Pessoa nao foi encontrada\n");
     return;
   }
+  //Verifica se o cadastro já está na fila prioritária
   if(verificar_rg_fila_prioritaria(heap, atual->dados->rg) == FALSE){
     printf("Esse RG ja esta na fila prioritaria");
     return;
   }
+  //Verifica se o cadastro já está na fila e pede confirmação dessa ação
   int confirmar = 0;
   if(verificar_rg_fila(fila, atual->dados->rg) == FALSE){
     printf("Esse cadastro ja esta na fila, ainda deseja adiciona-lo na fila prioritaria?\n 1-)Adicionar o paciente\n 2-)Cancelar\n");
@@ -1051,10 +1079,12 @@ void inserir_fila_prioritaria(Lista *lista, Heap *heap, Fila *fila) {
   Registro *dado = atual->dados;
   heap->dados[heap->qtde] = dado;
   heap->qtde++;
+  //Corrige a ordem da heap e confirma a adição do cadastro na fila prioritária
   construir(heap);
   printf("%s foi adicionado na fila prioritaria\n", atual->dados->nome);
 }
 
+//Remove o primeiro dado da heap
 void remover_fila_prioritaria(Heap *heap) {
   int i = 0;
   if(heap->qtde == 0){
@@ -1072,6 +1102,8 @@ void remover_fila_prioritaria(Heap *heap) {
 //==========================================================
 
 //Carregar/Salvar
+
+//Passa o RG de uma string XXX.XXX.XXX-XX para um long XXXXXXXXXX
 long rg_numeros(char rg_string[14]) {
   long numeros = 0;
   int i = 0, j = 0;
@@ -1085,6 +1117,7 @@ long rg_numeros(char rg_string[14]) {
   return numeros;
 }
 
+//Carrega os dados para a fila, evitando cadastros duplicados (com o mesmo RG)
 void carregar_arquivo(FILE *arquivo, Lista *lista, ABB *abb_idade, ABB *abb_ano, ABB *abb_mes, ABB *abb_dia){
   arquivo = fopen("carregar_cadastros_pacientes.txt", "r");
   //Verifica se o arquivo foi aberto
@@ -1100,7 +1133,7 @@ void carregar_arquivo(FILE *arquivo, Lista *lista, ABB *abb_idade, ABB *abb_ano,
   long rg = 0;
   linha[0] = 'v';
 
-  //Lê o arquivo até a última linha ou encontrar um erro
+  //Lê o arquivo até a última linha ou até encontrar um erro
   while (fgets(verificar, sizeof(verificar), arquivo)) {
     //Se a linha começa com '-' ou '\n' toda linha é descartada
     if (verificar[0] == '-' || verificar[0] == '\n') {
@@ -1109,9 +1142,9 @@ void carregar_arquivo(FILE *arquivo, Lista *lista, ABB *abb_idade, ABB *abb_ano,
     }
 
     //Salva o nome para o registro novo
-    //%[^\n] lê sem considerar '\n'
+    //%[^\n] lê espeço e sem considerar '\n'
     if(sscanf(verificar, "Nome: %[^\n]", nome) == 1){}
-    //Salva o idade para o registro novo
+    //Salva a idade para o registro novo
     else if(sscanf(verificar, "Idade: %d\n", &idade) == 1){}
     //Salva o RG para o registro novo
     //Garante que vão passar o rg como 13 char para a função
@@ -1122,14 +1155,13 @@ void carregar_arquivo(FILE *arquivo, Lista *lista, ABB *abb_idade, ABB *abb_ano,
           linha[0] = 'v';
       }
     }
-    //Salva a entrada para o registro novo
+    //Salva a data de entrada para o registro novo
     else if(sscanf(verificar, "Entrada: %d/%d/%d\n", &dia, &mes, &ano)){}
     
-    //Salva o registro na lista
+    //Salva o registro na lista se tiver todos os dados, considerando o ano a ser a última variável a ser alterada
     if(ano != 0){
-      //Se tiver todos os dados salva como um cadastro
       cadastrar_automatico(lista, nome, idade, rg, dia, mes, ano);
-      // Recupera o registro inserido
+      // Recupera o registro inserido para as árvores de busca
       ELista *inserido = lista->inicio;
       while (inserido->proximo != NULL) {
           inserido = inserido->proximo;
@@ -1148,7 +1180,7 @@ void carregar_arquivo(FILE *arquivo, Lista *lista, ABB *abb_idade, ABB *abb_ano,
   printf("Dados carregados com sucesso\n");
 }
 
-
+//Substitui todos os dados no arquivo pelo que estiverem na lista
 void salvar_arquivo(FILE *arquivo, Lista *lista){
   arquivo = fopen("salvar_cadastros_pacientes.txt", "w");
   //Verifica se o arquivo foi aberto
@@ -1199,6 +1231,7 @@ void salvar_arquivo(FILE *arquivo, Lista *lista){
 }
 
 int main(){
+  //Criando as estruturas utilizadas no programa
   FILE *arquivo;
   Lista *lista = cria_lista();
   Fila *fila = cria_fila();
@@ -1209,6 +1242,7 @@ int main(){
   ABB *abb_dia = cria_abb();
   ABB *abb_idade = cria_abb();
   int menuEscolha = 0, segundaEscolha = 0, sair = 0;
+  //Fica no while enquanto o usuário desejar
   while(sair == 0){
     printf("\n\n");
     printf("\t/---------------------------------------- \n");
@@ -1231,6 +1265,8 @@ int main(){
     printf("\t ----------------------------------------/\n\n");
     printf("\tEscolha uma opcao: ");
     scanf(" %d", &menuEscolha);
+    //Verifica as escolhas do usuário e realiza as funções necessárias
+    //Uma para cada item no menu e uma segunda para as opções dentro de cada item no menu
     switch (menuEscolha)
     {
     case 1:
