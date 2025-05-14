@@ -671,11 +671,13 @@ void atualizar_dados(Lista *lista){
     char novo_nome[NAME];
     scanf(" %[^\n]", novo_nome);
     atual->dados->nome = strdup(novo_nome);
+    printf("Dados atualizados\n");
     break;
 
   case 2:
     printf("Qual a idade?\n");
     scanf(" %d", &atual->dados->idade);
+    printf("Dados atualizados\n");
     break;
 
   case 3:
@@ -687,7 +689,13 @@ void atualizar_dados(Lista *lista){
       printf("RG invalido\n");
       return;
     }
+    //Verifica se o RG já existe na lista
+    if(verificar_rg_lista(lista, verificarRg) == FALSE){
+      printf("Esse RG ja possui um cadastro\n");
+      return;
+    }
     atual->dados->rg = verificarRg;
+    printf("Dados atualizados\n");
     break;
 
   case 4:
@@ -697,6 +705,7 @@ void atualizar_dados(Lista *lista){
     scanf(" %d", &atual->dados->entrada->mes);
     printf("Qual o ano de entrada?\n");
     scanf(" %d", &atual->dados->entrada->ano);
+    printf("Dados atualizados\n");
     break;
   
   default:
