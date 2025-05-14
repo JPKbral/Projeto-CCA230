@@ -52,6 +52,7 @@ typedef struct EABB{
   Registro *dados;
   struct EABB *filho_esq;
   struct EABB *filho_dir;
+  struct EABB *pai;
 }EABB;
 
 typedef struct ABB{
@@ -139,18 +140,20 @@ Heap *cria_heap(){
 }
 
 EABB *cria_eabb(Registro *dados){
-  EABB *eabb = malloc(sizeof(EABB));
-  eabb->dados = dados;
-  eabb->filho_esq = NULL;
-  eabb->filho_dir = NULL;
-  return eabb;
+  EABB *novo = malloc(sizeof(EABB));
+  novo->dados = dados;
+  novo->filho_esq = NULL;
+  novo->filho_dir = NULL;
+  novo->pai = NULL;
+
+  return novo;
 }
 
 ABB *cria_abb(){
-  ABB *abb = malloc(sizeof(ABB));
-  abb->raiz = NULL;
-  abb->qtde = 0;
-  return abb;
+  ABB *arvore = malloc(sizeof(ABB));
+  arvore->raiz = NULL;
+  arvore->qtde = 0;
+  return arvore;
 }
 
 EPilha *cria_epilha(){
@@ -214,6 +217,8 @@ boolean verificar_rg_fila_prioritaria(Heap *heap, int rg){
   return TRUE;
 
 }
+
+EABB *busca_rg(ABB *arvore, long rg);
 
 //CADASTRAR
 
@@ -406,7 +411,7 @@ void atualizar_dados(Lista *lista){
 }
 
 //Exclui o paciente que o usuário digitar o nome
-void remover_paciente(Lista *lista, Fila *fila, Heap *heap){
+void remover_paciente(Lista *lista, Fila *fila, Heap *heap, ABB *abb_idade, ABB *abb_ano, ABB *abb_mes, ABB *abb_dia){
   if(lista->qtde == 0){
     printf("A lista esta vazia\n");
     return;
@@ -450,6 +455,19 @@ void remover_paciente(Lista *lista, Fila *fila, Heap *heap){
       return;
     }
   }
+
+  EABB *no_idade = busca_rg(abb_idade->raiz, rg);
+  if(no_idade != NULL) remover_abb(abb_idade, no_idade);
+  
+  EABB *no_ano = busca_rg(abb_ano->raiz, rg);
+  if(no_ano != NULL) remover_abb(abb_ano, no_ano);
+  
+  EABB *no_mes = busca_rg(abb_mes->raiz, rg);
+  if(no_mes != NULL) remover_abb(abb_mes, no_mes);
+  
+  EABB *no_dia = busca_rg(abb_dia->raiz, rg);
+  if(no_dia != NULL) remover_abb(abb_dia, no_dia);
+
   //A lista fica vazia se possuir apenas o cadastro a ser removimo
   if(lista->qtde == 1){
     lista->inicio = NULL;
@@ -891,14 +909,18 @@ void mostrar_pos_ordem(EABB *raiz) {
   }
 }
 
-EABB *busca_rg(EABB *raiz, long rg) {
-  if (raiz == NULL) return NULL;
-  if (raiz->dados->rg == rg) return raiz;
-
-  EABB *esq = busca_rg(raiz->filho_esq, rg);
-  if (esq != NULL) return esq;
-
-  return busca_rg(raiz->filho_dir, rg);
+EABB *busca_rg(ABB *arvore, long rg) {
+  EABB *atual = arvore->raiz;
+  while (atual != NULL) {
+    if (atual->dados->rg == rg) {
+      return atual;
+    } else if (rg < atual->dados->rg) {
+      atual = atual->filho_esq;
+    } else {
+      atual = atual->filho_dir;
+    }
+  }
+  return NULL;
 }
 
 EABB *encontrar_sucessor(EABB *registro) {
@@ -909,67 +931,54 @@ EABB *encontrar_sucessor(EABB *registro) {
     return atual;
 }
 
-EABB *busca_pai(EABB *raiz, EABB *filho) {
-    if (raiz == NULL || raiz == filho) return NULL;
-
-    if (raiz->filho_esq == filho || raiz->filho_dir == filho) {
-        return raiz;
-    }
-
-    if (filho->dados->rg < raiz->dados->rg) {
-        return busca_pai(raiz->filho_esq, filho);
-    } else {
-        return busca_pai(raiz->filho_dir, filho);
-    }
-}
-
-int remover_abb(ABB *abb, EABB *registro) {
-  if (abb->raiz == NULL) {
-      return 0; // Árvore vazia
+int remover_abb(ABB *arvore, EABB *registro) {
+  if (arvore->raiz == NULL || registro == NULL) {
+    return 0; // Árvore vazia ou registro inválido
   }
 
-  int filhos= 0;
-	if(registro->filho_esq != NULL){filhos++;}
-	if(registro->filho_dir != NULL){filhos++;}
+  int filhos = 0;
+  if(registro->filho_esq != NULL) {filhos++;}
+  if(registro->filho_dir != NULL) {filhos++;}
 
   if (filhos == 0) {
-      // nó sem filhos
-      if (registro == abb->raiz) {
-          abb->raiz = NULL;
+    // nó sem filhos
+    if (arvore->raiz == registro) {
+      arvore->raiz = NULL;
+    } else if (registro->pai->filho_esq == registro) {
+        registro->pai->filho_esq = NULL;
       } else {
-          EABB *pai = busca_pai(abb->raiz, registro);
-          if (pai->filho_esq == registro) {
-              pai->filho_esq = NULL;
-          } else {
-              pai->filho_dir = NULL;
-          }
+        registro->pai->filho_dir = NULL;
       }
+    free(registro);
+
   } else if (filhos == 1) {
-      // nó com um filho
-      EABB *filho = (registro->filho_esq != NULL) ? registro->filho_esq : registro->filho_dir;
-      if (registro == abb->raiz) {
-          abb->raiz = filho;
+    // nó com um filho
+    EABB *filho = NULL;
+    if (registro->filho_esq != NULL) {
+      filho = registro->filho_esq;
+    } else {
+      filho = registro->filho_dir;
+    }
+    if (registro->pai == NULL) {
+      arvore->raiz = filho;
+      filho->pai = NULL;
+    }else if (registro->pai->filho_esq == registro) {
+        registro->pai->filho_esq = filho;
       } else {
-          EABB *pai = busca_pai(abb->raiz, registro);
-          if (pai->filho_esq == registro) {
-              pai->filho_esq = filho;
-          } else {
-              pai->filho_dir = filho;
-          }
+        registro->pai->filho_dir = filho;
+        filho->pai = registro->pai;
       }
-  } else {
-      // nó com dois filhos
-      EABB *sucessor = encontrar_sucessor(registro);
-      Registro *temp = registro->dados;
-      registro->dados = sucessor->dados;
-      sucessor->dados = temp;
-
-      // Remover o sucessor
-      remover_abb(abb, sucessor);
+    free(registro);
+    arvore->qtde--;
+    
+    } else {
+    EABB *atual = registro->filho_esq;
+    while(atual->filho_dir != NULL) {
+        atual = atual->filho_dir;
+    }
+    registro->dados = atual->dados;
+    remover_abb(arvore, atual);
   }
-
-  free(registro);
-  abb->qtde--;
   return 1; // Remoção bem-sucedida
 
 }
@@ -1170,7 +1179,7 @@ int main(){
 
       case 5:
         //Remover cadastro do paciente
-        remover_paciente(lista, fila, fila_prioritaria);
+        remover_paciente(lista, fila, fila_prioritaria, abb_idade, abb_ano, abb_mes, abb_dia);
         Sleep(1500);
         break;
       
@@ -1253,25 +1262,25 @@ int main(){
             printf("--------------------------------");
             mostrar_in_ordem(abb_ano->raiz); // ABB ordenada por ano
             printf("--------------------------------");
-            sleep(1500);
+            Sleep(1500);
             break;
           case 2:
             printf("--------------------------------");
             mostrar_in_ordem(abb_mes->raiz); // ABB ordenada por mês
             printf("--------------------------------");
-            sleep(1500);
+            Sleep(1500);
             break;
           case 3:
             printf("--------------------------------");
             mostrar_in_ordem(abb_dia->raiz); // ABB ordenada por dia
             printf("--------------------------------");
-            sleep(1500);
+            Sleep(1500);
             break;
           case 4:
             printf("--------------------------------");
             mostrar_in_ordem(abb_idade->raiz); // ABB ordenada por idade
             printf("--------------------------------");
-            sleep(1500);
+            Sleep(1500);
             break;
     }
 
