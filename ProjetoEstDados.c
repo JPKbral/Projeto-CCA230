@@ -462,6 +462,7 @@ void remover_paciente(Lista *lista, Fila *fila, Heap *heap){
   else{
     anterior->proximo = atual->proximo;
   }
+
   printf("%s teve o cadastro removido\n", atual->dados->nome);
   free(atual);
   lista->qtde--;
@@ -868,7 +869,8 @@ void inserir_abb_dia(ABB *abb, Registro *registro) {
 void mostrar_in_ordem(EABB *raiz) {
   if (raiz != NULL) {
       mostrar_in_ordem(raiz->filho_esq);
-      imprimir_registro(raiz->dados); 
+      imprimir_registro(raiz->dados);
+      printf("\n"); 
       mostrar_in_ordem(raiz->filho_dir);
   }
 }
@@ -890,14 +892,13 @@ void mostrar_pos_ordem(EABB *raiz) {
 }
 
 EABB *busca_rg(EABB *raiz, long rg) {
-  if (raiz == NULL || raiz->dados->rg == rg) {
-      return raiz;
-  }
-  if (rg < raiz->dados->rg) {
-      return busca_rg(raiz->filho_esq, rg);
-  } else {
-      return busca_rg(raiz->filho_dir, rg);
-  }
+  if (raiz == NULL) return NULL;
+  if (raiz->dados->rg == rg) return raiz;
+
+  EABB *esq = busca_rg(raiz->filho_esq, rg);
+  if (esq != NULL) return esq;
+
+  return busca_rg(raiz->filho_dir, rg);
 }
 
 EABB *encontrar_sucessor(EABB *registro) {
@@ -932,7 +933,7 @@ int remover_abb(ABB *abb, EABB *registro) {
 	if(registro->filho_dir != NULL){filhos++;}
 
   if (filhos == 0) {
-      // Caso 1: nó folha
+      // nó sem filhos
       if (registro == abb->raiz) {
           abb->raiz = NULL;
       } else {
@@ -944,7 +945,7 @@ int remover_abb(ABB *abb, EABB *registro) {
           }
       }
   } else if (filhos == 1) {
-      // Caso 2: nó com um filho
+      // nó com um filho
       EABB *filho = (registro->filho_esq != NULL) ? registro->filho_esq : registro->filho_dir;
       if (registro == abb->raiz) {
           abb->raiz = filho;
@@ -957,7 +958,7 @@ int remover_abb(ABB *abb, EABB *registro) {
           }
       }
   } else {
-      // Caso 3: nó com dois filhos
+      // nó com dois filhos
       EABB *sucessor = encontrar_sucessor(registro);
       Registro *temp = registro->dados;
       registro->dados = sucessor->dados;
@@ -1114,7 +1115,26 @@ int main(){
   ABB *abb_idade = cria_abb();
   int menuEscolha = 0, segundaEscolha = 0, sair = 0;
   while(sair == 0){
-    printf("Menu: \n 1-)Cadastrar \n 2-)Atendimento \n 3-)Atendimento Prioritario \n 4-)Pesquisa \n 5-)Desfazer \n 6-)Carregar/Salvar \n 7-)Sobre \n 8-)Sair \n ");
+    printf("\n\n");
+    printf("\t/---------------------------------------- \n");
+    printf("\t|                                        |\n");
+    printf("\t|   /================================    |\n");
+    printf("\t|   |                                |   |\n");
+    printf("\t|   |    SISTEMA DE ATENDIMENTO      |   |\n");
+    printf("\t|   |                                |   |\n");
+    printf("\t|    ================================/   |\n");
+    printf("\t|                                        |\n");
+    printf("\t|   [1] Cadastrar paciente               |\n");
+    printf("\t|   [2] Atendimento regular              |\n");
+    printf("\t|   [3] Atendimento prioritario          |\n");
+    printf("\t|   [4] Pesquisar registros              |\n");
+    printf("\t|   [5] Desfazer ultima acao             |\n");
+    printf("\t|   [6] Carregar/Salvar dados            |\n");
+    printf("\t|   [7] Sobre                            |\n");
+    printf("\t|   [8] Sair do programa                 |\n");
+    printf("\t|                                        |\n");
+    printf("\t ----------------------------------------/\n\n");
+    printf("\tEscolha uma opcao: ");
     scanf(" %d", &menuEscolha);
     switch (menuEscolha)
     {
@@ -1226,20 +1246,32 @@ int main(){
     
     case 4:
       //Pesquisa
-      printf("Ordenar por:\n1. Ano\n2. Mês\n3. Dia\n4. Idade\n");
+      printf("Ordenar por:\n1. Ano\n2. Mes\n3. Dia\n4. Idade\n");
       scanf("%d", &segundaEscolha);
       switch (segundaEscolha) {
           case 1:
+            printf("--------------------------------");
             mostrar_in_ordem(abb_ano->raiz); // ABB ordenada por ano
+            printf("--------------------------------");
+            sleep(1500);
             break;
           case 2:
+            printf("--------------------------------");
             mostrar_in_ordem(abb_mes->raiz); // ABB ordenada por mês
+            printf("--------------------------------");
+            sleep(1500);
             break;
           case 3:
+            printf("--------------------------------");
             mostrar_in_ordem(abb_dia->raiz); // ABB ordenada por dia
+            printf("--------------------------------");
+            sleep(1500);
             break;
           case 4:
+            printf("--------------------------------");
             mostrar_in_ordem(abb_idade->raiz); // ABB ordenada por idade
+            printf("--------------------------------");
+            sleep(1500);
             break;
     }
 
