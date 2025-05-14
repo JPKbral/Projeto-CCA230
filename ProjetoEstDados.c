@@ -650,7 +650,8 @@ void mostrar_lista(Lista *lista){
 }
 
 //Verificar quem deve ter os dados atualizados e qual o dado a ser alterado
-void atualizar_dados(Lista *lista){
+void atualizar_dados(Lista *lista, ABB *abb_idade, ABB *abb_ano, ABB *abb_mes, ABB *abb_dia){
+  int dado_novo = 0, dado_ano = 0, dado_mes = 0, dado_dia = 0;
   printf("Qual o RG da pessoa que voce deseja alterar os dados?\n");
   ELista *atual = procurar_paciente(lista);
   if(atual == NULL){
@@ -663,6 +664,8 @@ void atualizar_dados(Lista *lista){
   imprimir_registro_escolha(atual->dados);
   printf("Qual dado deseja alterar?\n");
   scanf("%d", &escolha);
+  
+  int rg = atual->dados->rg;
   //Casos para cada dado de um registro que pode ser alterado
   switch (escolha)
   {
@@ -676,7 +679,14 @@ void atualizar_dados(Lista *lista){
 
   case 2:
     printf("Qual a idade?\n");
-    scanf(" %d", &atual->dados->idade);
+    scanf(" %d", &dado_novo);
+    //Remove o cadastro das árvores de busca
+    EABB *no_idade = busca_no_abb(abb_idade->raiz, atual->dados->idade, 'i', rg);
+    if(no_idade != NULL) remover_abb(abb_idade, no_idade);
+    //Atualiza a idade
+    atual->dados->idade = dado_novo;
+    //Insere os dados atuais
+    inserir_abb_idade(abb_idade, atual->dados);
     printf("Dados atualizados\n");
     break;
 
@@ -700,11 +710,35 @@ void atualizar_dados(Lista *lista){
 
   case 4:
     printf("Qual o dia de entrada?\n");
-    scanf(" %d", &atual->dados->entrada->dia);
+    scanf(" %d", &dado_dia);
     printf("Qual o mes de entrada?\n");
-    scanf(" %d", &atual->dados->entrada->mes);
+    scanf(" %d", &dado_mes);
     printf("Qual o ano de entrada?\n");
-    scanf(" %d", &atual->dados->entrada->ano);
+    scanf(" %d", &dado_ano);
+    
+    //Remove o cadastro das árvores de busca
+    EABB *no_dia = busca_no_abb(abb_dia->raiz, atual->dados->entrada->dia, 'd', rg);
+    if(no_dia != NULL) remover_abb(abb_dia, no_dia);
+    //Atualiza a dia
+    atual->dados->entrada->dia = dado_dia;
+    //Insere os dados atuais
+    inserir_abb_dia(abb_dia, atual->dados);
+    
+    //Remove o cadastro das árvores de busca
+    EABB *no_mes = busca_no_abb(abb_mes->raiz, atual->dados->entrada->mes, 'm', rg);
+    if(no_mes != NULL) remover_abb(abb_mes, no_mes);
+    //Atualiza a mes
+    atual->dados->entrada->mes = dado_mes;
+    //Insere os dados atuais
+    inserir_abb_mes(abb_mes, atual->dados);
+    
+    //Remove o cadastro das árvores de busca
+    EABB *no_ano = busca_no_abb(abb_ano->raiz, atual->dados->entrada->ano, 'a', rg);
+    if(no_ano != NULL) remover_abb(abb_ano, no_ano);
+    //Atualiza a ano
+    atual->dados->entrada->ano = dado_ano;
+    //Insere os dados atuais
+    inserir_abb_ano(abb_ano, atual->dados);
     printf("Dados atualizados\n");
     break;
   
@@ -1304,7 +1338,7 @@ int main(){
         
       case 4:
         //Atualizar dados de paciente
-        atualizar_dados(lista);
+        atualizar_dados(lista, abb_idade, abb_ano, abb_mes, abb_dia);
         Sleep(1500);
         break;
 
