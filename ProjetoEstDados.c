@@ -388,7 +388,7 @@ void mostrar_pos_ordem(EABB *raiz) {
 }
 
 //Encontrar o RG na árvore
-//comprar é o valor a ser encontrado na árvore e deve confirmar com o rg
+//comparar é o valor a ser encontrado na árvore e deve confirmar com o rg
 //verificador difere entre idade, dia, mes e ano
 //atual será o ponto de partida para realizar a busca
 EABB *busca_no_abb(EABB *atual, int comparar, char verificador, int rg) {
@@ -486,14 +486,6 @@ EABB *busca_no_abb(EABB *atual, int comparar, char verificador, int rg) {
   return NULL;
 }
 
-EABB *encontrar_sucessor(EABB *registro) {
-    EABB *atual = registro->filho_dir;
-    while (atual->filho_esq != NULL) {
-        atual = atual->filho_esq;
-    }
-    return atual;
-}
-
 //Remove um RG da árvore de busca
 int remover_abb(ABB *arvore, EABB *registro) {
   if (arvore->raiz == NULL || registro == NULL) {
@@ -550,7 +542,7 @@ int remover_abb(ABB *arvore, EABB *registro) {
 
 }
 
-//CADASTRAR
+//CADASTRAR ==========================================================
 
 //Faz as perguntas necessárias para criar um cadastro completo e o insere na lista
 void cadastrar_manual(Lista *lista, ABB *abb_idade, ABB *abb_ano, ABB *abb_mes, ABB *abb_dia){
@@ -669,7 +661,7 @@ void atualizar_dados(Lista *lista, ABB *abb_idade, ABB *abb_ano, ABB *abb_mes, A
   //Casos para cada dado de um registro que pode ser alterado
   switch (escolha)
   {
-  case 1:
+  case 1: //altera o nome
     printf("Qual o novo nome?\n");
     char novo_nome[NAME];
     scanf(" %[^\n]", novo_nome);
@@ -677,7 +669,7 @@ void atualizar_dados(Lista *lista, ABB *abb_idade, ABB *abb_ano, ABB *abb_mes, A
     printf("Dados atualizados\n");
     break;
 
-  case 2:
+  case 2: //altera a idade
     printf("Qual a idade?\n");
     scanf(" %d", &dado_novo);
     //Remove o cadastro das árvores de busca
@@ -690,7 +682,7 @@ void atualizar_dados(Lista *lista, ABB *abb_idade, ABB *abb_ano, ABB *abb_mes, A
     printf("Dados atualizados\n");
     break;
 
-  case 3:
+  case 3: //altera o RG
     printf("Qual o rg?\n");
     long verificarRg;
     scanf(" %ld", &verificarRg);
@@ -708,7 +700,7 @@ void atualizar_dados(Lista *lista, ABB *abb_idade, ABB *abb_ano, ABB *abb_mes, A
     printf("Dados atualizados\n");
     break;
 
-  case 4:
+  case 4: //altera a data
     printf("Qual o dia de entrada?\n");
     scanf(" %d", &dado_dia);
     printf("Qual o mes de entrada?\n");
@@ -841,8 +833,10 @@ void consultar_paciente(Lista *lista){
   imprimir_registro(atual->dados);
   printf("--------------------------------\n");
 }
+//==========================================================
 
-//DESFAZER
+
+//DESFAZER =================================================
 
 //Coloca na pilha uma ação de adicionar um cadastro na fila
 void salvar_adicionar_fila(EFila *ficha, Pilha *pilha){
@@ -950,8 +944,10 @@ void desfazer_acao(Pilha *pilha, Fila *fila) {
     return;
   }
 }
+//=========================================================
 
-//ATENDIMENTO
+
+//ATENDIMENTO =============================================
 
 //Usuário digita o nome do paciente a ser adicionado na fila para o atendimento
 void enfileirar_paciente(Lista *lista, Fila *fila, Pilha *pilha, Heap *heap){
@@ -1029,7 +1025,10 @@ void mostrar_fila(Fila *fila){
   printf("--------------------------------\n");
 }
 
-//ATENDIMENTO PRIORITÁRIO
+//==============================================================
+
+
+//ATENDIMENTO PRIORITÁRIO ======================================
 
 //Calculos para os filhos e pai de um item da heap
 int filho_esq(int pai){
@@ -1144,7 +1143,8 @@ void remover_fila_prioritaria(Heap *heap) {
 
 //==========================================================
 
-//Carregar/Salvar
+
+//Carregar/Salvar ==========================================
 
 //Passa o RG de uma string XXX.XXX.XXX-XX para um long XXXXXXXXXX
 long rg_numeros(char rg_string[14]) {
@@ -1272,6 +1272,8 @@ void salvar_arquivo(FILE *arquivo, Lista *lista){
 
   printf("Dados salvos com sucesso\n");
 }
+
+//==========================================================
 
 int main(){
   //Criando as estruturas utilizadas no programa
