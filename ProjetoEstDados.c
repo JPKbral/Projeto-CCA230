@@ -1503,11 +1503,13 @@ int main(){
     
     case 7:
       //Sobre
-      printf("Nome dos desenvolvedores: Gabriel Ueno Vertamatti e João Pedro Soares Cabral\n");
-      printf("Ciclo: 7 Semestre\n");
-      printf("Curso: Engenharia de Robos\n");
-      printf("Disciplina: Estrutura de Dados e Analise de Algoritmos (CCA230)\n");
-      printf("Data: Maio de 2025\n");
+      printf("\n\t************************************************************************************\n");
+      printf("\t*   Nome dos desenvolvedores: Gabriel Ueno Vertamatti e Joao Pedro Soares Cabral   *\n");
+      printf("\t*   Ciclo: 7 Semestre                                                              *\n");
+      printf("\t*   Curso: Engenharia de Robos                                                     *\n");
+      printf("\t*   Disciplina: Estrutura de Dados e Analise de Algoritmos (CCA230)                *\n");
+      printf("\t*   Data: Maio de 2025                                                             *\n");
+      printf("\t************************************************************************************\n");
       Sleep(3000);
       break;
     
