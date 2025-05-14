@@ -3,6 +3,7 @@
 #include <string.h>
 #include <windows.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #define LEN 20
 #define NAME 50
@@ -218,7 +219,326 @@ boolean verificar_rg_fila_prioritaria(Heap *heap, int rg){
 
 }
 
-EABB *busca_rg(ABB *arvore, long rg);
+//Formatação correta para o RG
+void imprimir_rg(long rg){
+  if(rg/1000000000 != 0){
+    printf("%03d.%03d.%03d-%d", (rg/10000000), (rg/10000)%1000, (rg/10)%1000, rg%10);
+  }
+  else if(rg/100000000 != 0){
+    printf("%02d.%03d.%03d-%d", (rg/10000000), (rg/10000)%1000, (rg/10)%1000, rg%10);
+  }
+  else if(rg/10000000 != 0){
+    printf("%01d.%03d.%03d-%d", (rg/10000000), (rg/10000)%1000, (rg/10)%1000, rg%10);
+  }
+  else{
+    printf("%03d.%03d-%d", (rg/10000)%1000, (rg/10)%1000, rg%10);
+  }
+}
+
+//Formatação correta para a data
+void imprimir_data(Data *data){
+  printf("%d/%d/%d", data->dia, data->mes, data->ano);
+}
+
+//Formatação para um registro
+void imprimir_registro(Registro *registro){
+  printf("Nome: %s\n", registro->nome);
+  printf("Idade: %d\n", registro->idade);
+  printf("RG: ");
+  imprimir_rg(registro->rg);
+  printf("\n");
+  printf("Entrada: ");
+  imprimir_data(registro->entrada);
+  printf("\n");
+}
+
+// Pesquisa com arvore binária =============================
+
+//inserção da idade
+void inserir_abb_idade(ABB *abb, Registro *registro) {
+  EABB *novo = cria_eabb(registro);
+  if (abb->raiz == NULL) {
+      abb->raiz = novo;
+  } else {
+      EABB *atual = abb->raiz;
+      EABB *anterior = NULL;
+      while (atual != NULL) {
+          anterior = atual;
+          if (registro->idade <= atual->dados->idade) {
+              atual = atual->filho_esq;
+          } else {
+              atual = atual->filho_dir;
+          }
+      }
+      if (registro->idade <= anterior->dados->idade) {
+          anterior->filho_esq = novo;
+      } else {
+          anterior->filho_dir = novo;
+      }
+      novo->pai = anterior;
+  }
+  abb->qtde++;
+}
+
+//inserção do ano
+void inserir_abb_ano(ABB *abb, Registro *registro) {
+  EABB *novo = cria_eabb(registro);
+  if (abb->raiz == NULL) {
+      abb->raiz = novo;
+  } else {
+      EABB *atual = abb->raiz;
+      EABB *anterior = NULL;
+      while (atual != NULL) {
+          anterior = atual;
+          if (registro->entrada->ano <= atual->dados->entrada->ano) {
+              atual = atual->filho_esq;
+          } else {
+              atual = atual->filho_dir;
+          }
+      }
+      if (registro->entrada->ano <= anterior->dados->entrada->ano) {
+          anterior->filho_esq = novo;
+      } else {
+          anterior->filho_dir = novo;
+      }
+      novo->pai = anterior;
+  }
+  abb->qtde++;
+}
+
+//inserção do mês
+void inserir_abb_mes(ABB *abb, Registro *registro) {
+  EABB *novo = cria_eabb(registro);
+  if (abb->raiz == NULL) {
+      abb->raiz = novo;
+  } else {
+      EABB *atual = abb->raiz;
+      EABB *anterior = NULL;
+      while (atual != NULL) {
+          anterior = atual;
+          if (registro->entrada->mes <= atual->dados->entrada->mes) {
+              atual = atual->filho_esq;
+          } else {
+              atual = atual->filho_dir;
+          }
+      }
+      if (registro->entrada->mes <= anterior->dados->entrada->mes) {
+          anterior->filho_esq = novo;
+      } else {
+          anterior->filho_dir = novo;
+      }
+      novo->pai = anterior;
+  }
+  abb->qtde++;
+}
+
+//inserção do dia
+void inserir_abb_dia(ABB *abb, Registro *registro) {
+  EABB *novo = cria_eabb(registro);
+  if (abb->raiz == NULL) {
+      abb->raiz = novo;
+  } else {
+      EABB *atual = abb->raiz;
+      EABB *anterior = NULL;
+      while (atual != NULL) {
+          anterior = atual;
+          if (registro->entrada->dia <= atual->dados->entrada->dia) {
+              atual = atual->filho_esq;
+          } else {
+              atual = atual->filho_dir;
+          }
+      }
+      if (registro->entrada->dia <= anterior->dados->entrada->dia) {
+          anterior->filho_esq = novo;
+      } else {
+          anterior->filho_dir = novo;
+      }
+      novo->pai = anterior;
+  }
+  abb->qtde++;
+}
+
+void mostrar_in_ordem(EABB *raiz) {
+  if (raiz != NULL) {
+      mostrar_in_ordem(raiz->filho_esq);
+      imprimir_registro(raiz->dados);
+      printf("\n"); 
+      mostrar_in_ordem(raiz->filho_dir);
+  }
+}
+
+void mostrar_pre_ordem(EABB *raiz) {
+  if (raiz != NULL) {
+    imprimir_registro(raiz->dados); 
+    mostrar_pre_ordem(raiz->filho_esq);
+    mostrar_pre_ordem(raiz->filho_dir);
+  }
+}
+
+void mostrar_pos_ordem(EABB *raiz) {
+  if (raiz != NULL) {
+    mostrar_pos_ordem(raiz->filho_esq);
+    mostrar_pos_ordem(raiz->filho_dir);
+    imprimir_registro(raiz->dados); 
+  }
+}
+
+EABB *busca_no_abb(EABB *atual, int comparar, char verificador, int rg) {
+  switch(verificador){
+    case 'i':
+      while (atual != NULL) {
+        if (atual->dados->idade == comparar){
+          if (atual->dados->rg == rg) {
+            return atual;
+          } else {
+            // Verifica dos dois lados
+            //considera o filho esquerdo do atual como a raiz para buscar o RG
+            EABB *esq = busca_no_abb(atual->filho_esq, atual->dados->idade, 'i', rg);
+            if(esq != NULL){ 
+              return esq;
+            }
+            atual = atual->filho_dir;
+          }
+        } else if (comparar < atual->dados->idade) {
+          atual = atual->filho_esq;
+        } else {
+          atual = atual->filho_dir;
+        }
+      }
+      break;
+
+    case 'd':
+      while (atual != NULL) {
+        if (atual->dados->entrada->dia == comparar){
+          if (atual->dados->rg == rg) {
+            return atual;
+          } else {
+            // Verifica dos dois lados
+            EABB *esq = busca_no_abb(atual->filho_esq, atual->dados->entrada->dia, 'd', rg);
+            if(esq != NULL){ 
+              return esq;
+            }
+            atual = atual->filho_dir;
+          }
+        } else if (comparar < atual->dados->entrada->dia) {
+          atual = atual->filho_esq;
+        } else {
+          atual = atual->filho_dir;
+        }
+      }
+      break;
+    
+    case 'm':
+      while (atual != NULL) {
+        if (atual->dados->entrada->mes == comparar){
+          if (atual->dados->rg == rg) {
+            return atual;
+          } else {
+            // Verifica dos dois lados
+            EABB *esq = busca_no_abb(atual->filho_esq, atual->dados->entrada->mes, 'm', rg);
+            if(esq != NULL){ 
+              return esq;
+            }
+            atual = atual->filho_dir;
+          }
+        } else if (comparar < atual->dados->entrada->mes) {
+          atual = atual->filho_esq;
+        } else {
+          atual = atual->filho_dir;
+        }
+      }
+      break;
+  
+    case 'a':
+      while (atual != NULL) {
+        if (atual->dados->entrada->ano == comparar){
+          if (atual->dados->rg == rg) {
+            return atual;
+          } else {
+            // Verifica dos dois lados
+            EABB *esq = busca_no_abb(atual->filho_esq, atual->dados->entrada->ano, 'a', rg);
+            if(esq != NULL){ 
+              return esq;
+            }
+            atual = atual->filho_dir;
+          }
+        } else if (comparar < atual->dados->entrada->ano) {
+          atual = atual->filho_esq;
+        } else {
+          atual = atual->filho_dir;
+        }
+      }
+      break;
+
+    default:
+      break;
+
+  }
+  return NULL;
+}
+
+EABB *encontrar_sucessor(EABB *registro) {
+    EABB *atual = registro->filho_dir;
+    while (atual->filho_esq != NULL) {
+        atual = atual->filho_esq;
+    }
+    return atual;
+}
+
+int remover_abb(ABB *arvore, EABB *registro) {
+  if (arvore->raiz == NULL || registro == NULL) {
+    return 0; // Árvore vazia ou registro inválido
+  }
+
+  int filhos = 0;
+  if(registro->filho_esq != NULL) {filhos++;}
+  if(registro->filho_dir != NULL) {filhos++;}
+
+  if (filhos == 0) {
+    // nó sem filhos
+
+    if (arvore->raiz == registro) {
+      arvore->raiz = NULL;
+    }else if (registro->pai->filho_esq == registro) {
+        registro->pai->filho_esq = NULL;
+    }else {
+        registro->pai->filho_dir = NULL;
+    }
+    free(registro);
+    arvore->qtde--;
+
+  }else if (filhos == 1) {
+    // nó com um filho
+    EABB *filho = NULL;
+    if (registro->filho_esq != NULL) {
+      filho = registro->filho_esq;
+    } else {
+      filho = registro->filho_dir;
+    }
+    if (registro->pai == NULL) {
+      arvore->raiz = filho;
+      filho->pai = NULL;
+    }else if (registro->pai->filho_esq == registro) {
+        registro->pai->filho_esq = filho;
+        filho->pai = registro->pai;
+    }else {
+        registro->pai->filho_dir = filho;
+        filho->pai = registro->pai;
+    }
+    free(registro);
+    arvore->qtde--;
+    
+  } else {
+    EABB *atual = registro->filho_esq;
+    while(atual->filho_dir != NULL) {
+        atual = atual->filho_dir;
+    }
+    registro->dados = atual->dados;
+    remover_abb(arvore, atual);
+  }
+  return 1; // Remoção bem-sucedida
+
+}
 
 //CADASTRAR
 
@@ -289,39 +609,6 @@ void cadastrar_automatico(Lista *lista, const char *nome, int idade, long rg, in
   }
 
   lista->qtde++;
-}
-
-//Formatação correta para a data
-void imprimir_data(Data *data){
-  printf("%d/%d/%d", data->dia, data->mes, data->ano);
-}
-
-//Formatação correta para o RG
-void imprimir_rg(long rg){
-  if(rg/1000000000 != 0){
-    printf("%03d.%03d.%03d-%d", (rg/10000000), (rg/10000)%1000, (rg/10)%1000, rg%10);
-  }
-  else if(rg/100000000 != 0){
-    printf("%02d.%03d.%03d-%d", (rg/10000000), (rg/10000)%1000, (rg/10)%1000, rg%10);
-  }
-  else if(rg/10000000 != 0){
-    printf("%01d.%03d.%03d-%d", (rg/10000000), (rg/10000)%1000, (rg/10)%1000, rg%10);
-  }
-  else{
-    printf("%03d.%03d-%d", (rg/10000)%1000, (rg/10)%1000, rg%10);
-  }
-}
-
-//Formatação para um registro
-void imprimir_registro(Registro *registro){
-  printf("Nome: %s\n", registro->nome);
-  printf("Idade: %d\n", registro->idade);
-  printf("RG: ");
-  imprimir_rg(registro->rg);
-  printf("\n");
-  printf("Entrada: ");
-  imprimir_data(registro->entrada);
-  printf("\n");
 }
 
 //Formatação para um registro com numeração para escolha
@@ -456,16 +743,16 @@ void remover_paciente(Lista *lista, Fila *fila, Heap *heap, ABB *abb_idade, ABB 
     }
   }
 
-  EABB *no_idade = busca_rg(abb_idade->raiz, rg);
+  EABB *no_idade = busca_no_abb(abb_idade->raiz, atual->dados->idade, 'i', rg);
   if(no_idade != NULL) remover_abb(abb_idade, no_idade);
   
-  EABB *no_ano = busca_rg(abb_ano->raiz, rg);
+  EABB *no_ano = busca_no_abb(abb_ano->raiz, atual->dados->entrada->ano, 'a', rg);
   if(no_ano != NULL) remover_abb(abb_ano, no_ano);
   
-  EABB *no_mes = busca_rg(abb_mes->raiz, rg);
+  EABB *no_mes = busca_no_abb(abb_mes->raiz, atual->dados->entrada->mes, 'm', rg);
   if(no_mes != NULL) remover_abb(abb_mes, no_mes);
   
-  EABB *no_dia = busca_rg(abb_dia->raiz, rg);
+  EABB *no_dia = busca_no_abb(abb_dia->raiz, atual->dados->entrada->dia, 'd', rg);
   if(no_dia != NULL) remover_abb(abb_dia, no_dia);
 
   //A lista fica vazia se possuir apenas o cadastro a ser removimo
@@ -782,207 +1069,6 @@ void remover_fila_prioritaria(Heap *heap) {
   }
 }
 
-// Pesquisa com arvore binária =============================
-
-//inserção da idade
-void inserir_abb_idade(ABB *abb, Registro *registro) {
-  EABB *novo = cria_eabb(registro);
-  if (abb->raiz == NULL) {
-      abb->raiz = novo;
-  } else {
-      EABB *atual = abb->raiz;
-      EABB *anterior = NULL;
-      while (atual != NULL) {
-          anterior = atual;
-          if (registro->idade <= atual->dados->idade) {
-              atual = atual->filho_esq;
-          } else {
-              atual = atual->filho_dir;
-          }
-      }
-      if (registro->idade <= anterior->dados->idade) {
-          anterior->filho_esq = novo;
-      } else {
-          anterior->filho_dir = novo;
-      }
-  }
-  abb->qtde++;
-}
-
-//inserção do ano
-void inserir_abb_ano(ABB *abb, Registro *registro) {
-  EABB *novo = cria_eabb(registro);
-  if (abb->raiz == NULL) {
-      abb->raiz = novo;
-  } else {
-      EABB *atual = abb->raiz;
-      EABB *anterior = NULL;
-      while (atual != NULL) {
-          anterior = atual;
-          if (registro->entrada->ano <= atual->dados->entrada->ano) {
-              atual = atual->filho_esq;
-          } else {
-              atual = atual->filho_dir;
-          }
-      }
-      if (registro->entrada->ano <= anterior->dados->entrada->ano) {
-          anterior->filho_esq = novo;
-      } else {
-          anterior->filho_dir = novo;
-      }
-  }
-  abb->qtde++;
-}
-
-//inserção do mês
-void inserir_abb_mes(ABB *abb, Registro *registro) {
-  EABB *novo = cria_eabb(registro);
-  if (abb->raiz == NULL) {
-      abb->raiz = novo;
-  } else {
-      EABB *atual = abb->raiz;
-      EABB *anterior = NULL;
-      while (atual != NULL) {
-          anterior = atual;
-          if (registro->entrada->mes <= atual->dados->entrada->mes) {
-              atual = atual->filho_esq;
-          } else {
-              atual = atual->filho_dir;
-          }
-      }
-      if (registro->entrada->mes <= anterior->dados->entrada->mes) {
-          anterior->filho_esq = novo;
-      } else {
-          anterior->filho_dir = novo;
-      }
-  }
-  abb->qtde++;
-}
-
-//inserção do dia
-void inserir_abb_dia(ABB *abb, Registro *registro) {
-  EABB *novo = cria_eabb(registro);
-  if (abb->raiz == NULL) {
-      abb->raiz = novo;
-  } else {
-      EABB *atual = abb->raiz;
-      EABB *anterior = NULL;
-      while (atual != NULL) {
-          anterior = atual;
-          if (registro->entrada->dia <= atual->dados->entrada->dia) {
-              atual = atual->filho_esq;
-          } else {
-              atual = atual->filho_dir;
-          }
-      }
-      if (registro->entrada->dia <= anterior->dados->entrada->dia) {
-          anterior->filho_esq = novo;
-      } else {
-          anterior->filho_dir = novo;
-      }
-  }
-  abb->qtde++;
-}
-
-void mostrar_in_ordem(EABB *raiz) {
-  if (raiz != NULL) {
-      mostrar_in_ordem(raiz->filho_esq);
-      imprimir_registro(raiz->dados);
-      printf("\n"); 
-      mostrar_in_ordem(raiz->filho_dir);
-  }
-}
-
-void mostrar_pre_ordem(EABB *raiz) {
-  if (raiz != NULL) {
-    imprimir_registro(raiz->dados); 
-    mostrar_pre_ordem(raiz->filho_esq);
-    mostrar_pre_ordem(raiz->filho_dir);
-  }
-}
-
-void mostrar_pos_ordem(EABB *raiz) {
-  if (raiz != NULL) {
-    mostrar_pos_ordem(raiz->filho_esq);
-    mostrar_pos_ordem(raiz->filho_dir);
-    imprimir_registro(raiz->dados); 
-  }
-}
-
-EABB *busca_rg(ABB *arvore, long rg) {
-  EABB *atual = arvore->raiz;
-  while (atual != NULL) {
-    if (atual->dados->rg == rg) {
-      return atual;
-    } else if (rg < atual->dados->rg) {
-      atual = atual->filho_esq;
-    } else {
-      atual = atual->filho_dir;
-    }
-  }
-  return NULL;
-}
-
-EABB *encontrar_sucessor(EABB *registro) {
-    EABB *atual = registro->filho_dir;
-    while (atual->filho_esq != NULL) {
-        atual = atual->filho_esq;
-    }
-    return atual;
-}
-
-int remover_abb(ABB *arvore, EABB *registro) {
-  if (arvore->raiz == NULL || registro == NULL) {
-    return 0; // Árvore vazia ou registro inválido
-  }
-
-  int filhos = 0;
-  if(registro->filho_esq != NULL) {filhos++;}
-  if(registro->filho_dir != NULL) {filhos++;}
-
-  if (filhos == 0) {
-    // nó sem filhos
-    if (arvore->raiz == registro) {
-      arvore->raiz = NULL;
-    } else if (registro->pai->filho_esq == registro) {
-        registro->pai->filho_esq = NULL;
-      } else {
-        registro->pai->filho_dir = NULL;
-      }
-    free(registro);
-
-  } else if (filhos == 1) {
-    // nó com um filho
-    EABB *filho = NULL;
-    if (registro->filho_esq != NULL) {
-      filho = registro->filho_esq;
-    } else {
-      filho = registro->filho_dir;
-    }
-    if (registro->pai == NULL) {
-      arvore->raiz = filho;
-      filho->pai = NULL;
-    }else if (registro->pai->filho_esq == registro) {
-        registro->pai->filho_esq = filho;
-      } else {
-        registro->pai->filho_dir = filho;
-        filho->pai = registro->pai;
-      }
-    free(registro);
-    arvore->qtde--;
-    
-    } else {
-    EABB *atual = registro->filho_esq;
-    while(atual->filho_dir != NULL) {
-        atual = atual->filho_dir;
-    }
-    registro->dados = atual->dados;
-    remover_abb(arvore, atual);
-  }
-  return 1; // Remoção bem-sucedida
-
-}
-
 //==========================================================
 
 //Carregar/Salvar
@@ -1259,25 +1345,25 @@ int main(){
       scanf("%d", &segundaEscolha);
       switch (segundaEscolha) {
           case 1:
-            printf("--------------------------------");
+            printf("--------------------------------\n");
             mostrar_in_ordem(abb_ano->raiz); // ABB ordenada por ano
             printf("--------------------------------");
             Sleep(1500);
             break;
           case 2:
-            printf("--------------------------------");
+            printf("--------------------------------\n");
             mostrar_in_ordem(abb_mes->raiz); // ABB ordenada por mês
             printf("--------------------------------");
             Sleep(1500);
             break;
           case 3:
-            printf("--------------------------------");
+            printf("--------------------------------\n");
             mostrar_in_ordem(abb_dia->raiz); // ABB ordenada por dia
             printf("--------------------------------");
             Sleep(1500);
             break;
           case 4:
-            printf("--------------------------------");
+            printf("--------------------------------\n");
             mostrar_in_ordem(abb_idade->raiz); // ABB ordenada por idade
             printf("--------------------------------");
             Sleep(1500);
